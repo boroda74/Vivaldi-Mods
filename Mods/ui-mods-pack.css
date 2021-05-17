@@ -1,0 +1,127 @@
+/* Add blue bar at the top of active tab header */
+.tab {
+	padding-top: 2px;
+	height: 35px !important;
+}
+
+.tab.active {
+	border-top: 2px solid #0a84ff;
+	padding-top: 0px;
+	height: 35px !important;
+}
+
+#tabs-container.top {
+	padding-top: 0px;
+}
+
+
+/* Find in page on bottom */
+.find-in-page {
+	position:absolute;
+	bottom:-1px;
+	border: 1px solid var(--colorBorder);
+	border-radius: var(--radius);
+	margin: 0 auto;
+	right: 0;
+	left: 0;
+	z-index:1;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.find-in-page:not(:focus-within):not(:hover) {
+	opacity: .8;
+}
+
+
+/* Change the look of sync tabs, tab trash and application buttons */
+#tabs-container .newtab svg path {
+	d: path('M18,12L14,12L14,8L12,8L12,12L8,12L8,14L12,14L12,18L14,18L14,14L18,14Z');
+}
+
+#tabs-container .newtab > button {
+	border-radius: var(--radiusHalf);
+	background-clip: content-box;
+	padding: 2px;
+}
+
+#tabs-container .newtab > button:hover {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+#tabs-container .toggle-trash svg path {
+	d: path('M 6 8 h14 v2 h-14 Z M 6 12 h14 v2 h-14 Z M 9 16 h8 v2 h-8 Z');
+}
+
+#tabs-container .toggle-trash > button {
+	border-radius: var(--radiusHalf);
+	background-clip: content-box;
+	padding: 2px;
+}
+
+#tabs-container .toggle-trash > button:hover {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+#tabs-container .synced-tabs-button > button {
+	border-radius: var(--radiusHalf);
+	background-clip: content-box;
+	padding: 2px;
+}
+
+#tabs-container .synced-tabs-button > button:hover {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+#titlebar > button > span.application-icon > svg path,
+#titlebar > button > span.vivaldi-v > svg path {
+	d: path('M16.42 8.64l-4.17 7.23a1.39 1.39 0 0 1-1.15.76 1.33 1.33 0 0 1-1.32-.7c-.88-1.51-1.75-3-2.62-4.54l-1.6-2.77A1.4 1.4 0 0 1 6.7 6.51a1.34 1.34 0 0 1 1.3.72l1.17 2c.28.48.55 1 .84 1.45a2.2 2.2 0 0 0 1.84 1.14 2.24 2.24 0 0 0 2.36-2v-.23a2.34 2.34 0 0 0-.24-1 1.4 1.4 0 1 1 2.62-.87 1.46 1.46 0 0 1-.17.92z');
+}
+
+#titlebar > button > span.application-icon > svg,
+#titlebar > button > span.vivaldi-v > svg {
+	height: 80%;
+	width: 80%;
+}
+.vivaldi {
+	position: relative !important;
+	top: 3px !important;
+}
+
+
+/* Transmission/animation on tab switching */
+/* Adds transition to the active tab background color */
+.tab-position .tab.active {
+	transition: background-color 0.4s;
+}
+
+/* Adds transition to non-active tabs background color */
+.tab-position .tab:not(.active) {
+	transition: background-color 0.4s;
+}
+
+/* Adds transition to the tab stack indicators */
+.color-behind-tabs-on.stacks-on .tab-strip .tab.active .tab-group-indicator .tab-indicator.active {
+	transition: background-color 0.4s;
+}
+.stacks-on .tab-strip .tab.active .tab-group-indicator .tab-indicator.active {
+	transition: background-color 0.4s;
+}
+.color-behind-tabs-on.stacks-on .tab-strip .tab .tab-group-indicator .tab-indicator.active, .stacks-on .tab-strip .tab .tab-group-indicator .tab-indicator.active.background-image {
+	transition: background-color 0.4s;
+}
+.stacks-on .tab-strip .tab .tab-group-indicator .tab-indicator.active {
+	transition: background-color 0.4s;
+}
+.color-behind-tabs-on.stacks-on .tab-strip .tab .tab-group-indicator .tab-indicator {
+	transition: background-color 0.4s;
+}
+.color-behind-tabs-on.stacks-on .tab-strip .tab .tab-group-indicator .tab-indicator:hover {
+	transition: background-color 0.4s;
+}
+.stacks-on .tab-strip .tab .tab-group-indicator .tab-indicator {
+	transition: background-color 0.4s;
+}
+.stacks-on .tab-strip .tab .tab-group-indicator .tab-indicator:hover {
+	transition: background-color 0.4s;
+}
