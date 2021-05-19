@@ -8,10 +8,29 @@
 	border-top: 2px solid #0a84ff;
 	padding-top: 0px;
 	height: 35px !important;
+	-webkit-text-stroke-width: 0.15px;
 }
 
 #tabs-container.top {
 	padding-top: 0px;
+}
+
+
+/* Discarded tabs marked text */
+.tab-position .tab.isdiscarded:not(:hover) .title {
+	opacity: .6; /* -webkit-text-fill-color: #9999; */
+} /* lighten hibernated tabs' title or change the color */
+
+.tab-position .tab:not(.isdiscarded) .title {
+	-webkit-text-stroke-width: 0.15px;
+} /* increase loaded tabs' title thickness slightly */
+
+#window-panel .vivaldi-tree .tree-item:not(:hover) .tree-row:not(
+	[data-selected]
+)
+
+.discarded ~ .title {
+	opacity: .6;
 }
 
 
@@ -125,22 +144,3 @@
 .stacks-on .tab-strip .tab .tab-group-indicator .tab-indicator:hover {
 	transition: background-color 0.4s;
 }
-
-
-/* Discarded tabs marked text */
-.tab-position .tab.isdiscarded:not(:hover) .title {
-	opacity: .6; /* -webkit-text-fill-color: #9999; */
-} /* lighten hibernated tabs' title or change the color */
-
-.tab-position .tab:not(.isdiscarded) .title {
-	-webkit-text-stroke-width: 0.15px;
-} /* increase loaded tabs' title thickness slightly */
-
-#window-panel .vivaldi-tree .tree-item:not(:hover) .tree-row:not(
-	[data-selected]
-)
-
-.discarded ~ .title {
-	opacity: .6;
-}
- 
