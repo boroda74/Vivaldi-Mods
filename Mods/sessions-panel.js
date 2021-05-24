@@ -1,48 +1,64 @@
 ﻿/*
-* Sessions Panel (a mod for Vivaldi)
-* Written by LonM, modified by boroda
-* No Copyright Reserved
-* 
-* ko translation by @dencion
-* it by @folgore101
-* de by @knoelli
-* nl by @Vistaus
-* jp by @nkay1005
-* pt-br by @oinconquistado
-* pl-pl by @supra107
-* ru by @boroda
+ * Sessions Panel (a mod for Vivaldi)
+ * Written by LonM, modified by boroda
+ * No Copyright Reserved
+ * 
+ * ko-KR translation by @dencion
+ * it-IT by @folgore101
+ * de-DE by @knoelli
+ * nl-NL by @Vistaus
+ * ja-JP by @nkay1005
+ * pt-BR by @oinconquistado
+ * pl-PL by @supra107
+ * ru-RU by @boroda
 */
 
 (function advancedPanels(){
 	"use strict";
-
-	var oldNameDate;
-	var selectedSessions;
-
-	const privateWindowsNotSavedFilenamePostfix = '!';
-	const privateWindowsOnlyFilenamePostfix = '!!';
 	
-	const privateWindowsNotSavedDisplayedPostfix = '*\u2002\u2002';
-	const privateWindowsOnlyDisplayedPostfix = '**\u2002';
+	var OldNameDate;
+	var SelectedSessions;
+	var SaveFilename;
+	var Options;
+	var LastClickedSession = null;
 	
-	const LANGUAGE = 'en_gb'; //en_gb, ru, etc.
-
+	var CurrentWindowIsPrivate = false;
+	
+	const PrivateWindowsNotSavedFilenamePostfix = '!';
+	const PrivateWindowsOnlyFilenamePostfix = '!!';
+	
+	const PrivateWindowsNotSavedDisplayedPostfix = '*\u2002\u2002'; //Em-spaces at the end
+	const PrivateWindowsOnlyDisplayedPostfix = '**\u2002'; //Em-space at the end
+	
+	var LANGUAGE;
+	var l10nLocalized;
+	var sessions_lonmTitle;
+	var sessions_lonmInitialHTML;
+	
+	
 	const l10n = {
-		en_gb: {
+		'en-GB': {
+			language_name: 'English (UK English)',
+			language_btn: 'Lang',
+			language_confirm: '✓ Change',
+			language_cancel: '✕ Cancel',
+			language_selection_tooltip: 'Select session panel interface language',
 			title: 'Sessions',
 			new_session: 'New Session',
 			session_name_placeholder: 'Session Name',
 			all_windows: 'All Windows',
 			only_selected: 'Only Selected Tabs',
 			add_session_btn: 'Add Session',
+			add_session_btn_desc: 'Save current session',
 			refresh_sessions_btn: '⇄',
+			refresh_sessions_btn_desc: 'Refresh session list and clear session name',
 			saved_sessions: 'Saved Sessions',
 			sort_title: 'Sort by...',
 			sort_date: 'Sort by Date',
 			sort_name: 'Sort by Name',
 			sort_asc: 'Sort Ascending',
 			sort_desc: 'Sort Descending',
-			delete_button: 'Delete session',
+			delete_button: 'Delete selected session(s)',
 			delete_prompt: 'Are you sure you want to delete session $T?',
 			delete_number_sessions: 'Are you sure you want to delete $N selected sessions?',
 			delete_number_sessions_general: '',
@@ -54,30 +70,39 @@
 			open_number_sessions: 'Are you sure you want to open $N selected sessions?',
 			open_number_sessions_general: '',
 			open_confirm: '⚠ Yes, open',
+			overwrite_prompt: 'Are you sure you want to overwrite session $T?',
+			overwrite_confirm: '⚠ Yes, overwrite',
 			time_created_label: 'Created <time></time>',
 			today_label: 'today',
-			open_in_new_window_button: 'Open in new window',
-			open_in_current_window_button: 'Open in current window',
+			open_in_new_window_button: 'Open selected session(s) in new window',
+			open_in_current_window_button: 'Open selected session(s) in current window',
 			private_windows_not_saved_label: 'Private window(s) not saved',
 			private_windows_only_label: 'Private window(s) only',
 			tabs_label: 'Tabs: ',
-			windows_label: 'windows: '
+			windows_label: 'windows: ',
 		},
-		ru: {
+		'ru-RU': {
+			language_name: 'Russian (Русский)',
+			language_btn: 'Lang',
+			language_confirm: '✓ Изменить',
+			language_cancel: '✕ Отмена',
+			language_selection_tooltip: 'Выберите язык интерфейса',
 			title: 'Сессии',
 			new_session: 'Новая сессия',
 			session_name_placeholder: 'Имя сессии',
 			all_windows: 'Все окна',
 			only_selected: 'Выбранные вкладки',
 			add_session_btn: 'Добавить сессию',
+			add_session_btn_desc: 'Сохранить текущую сессию',
 			refresh_sessions_btn: '⇄',
+			refresh_sessions_btn_desc: 'Обновить список сессий и очистить имя сессии',
 			saved_sessions: 'Сохраненные сессии',
 			sort_title: 'Сортировать по...',
 			sort_date: 'Сортировать по дате',
 			sort_name: 'Сортировать по имени',
 			sort_asc: 'По возрастанию',
 			sort_desc: 'По убыванию',
-			delete_button: 'Удалить сессию',
+			delete_button: 'Удалить выбранные сессии',
 			delete_prompt: 'Вы уверены, что хотите удалить сессию $T?',
 			delete_number_sessions: 'Вы уверены, что хотите удалить $N выбранные сессии?',
 			delete_number_sessions_general: 'Вы уверены, что хотите удалить $N?',
@@ -89,23 +114,32 @@
 			open_number_sessions: 'Вы уверены, что хотите открыть $N выбранные сессии?',
 			open_number_sessions_general: 'Вы уверены, что хотите открыть $N?',
 			open_confirm: '⚠ Да, открыть',
+			overwrite_prompt: 'Вы уверены, что хотите перезаписать сессию $T?',
+			overwrite_confirm: '⚠ Да, перезаписать',
 			time_created_label: 'Создано <time></time>',
 			today_label: 'сегодня',
-			open_in_new_window_button: 'Открыть в новом окне',
-			open_in_current_window_button: 'Открыть в текущем окне',
+			open_in_new_window_button: 'Открыть в новом окне выбранные сессии',
+			open_in_current_window_button: 'Открыть в текущем окне выбранные сессии',
 			private_windows_not_saved_label: 'Приватные окна не сохранены',
 			private_windows_only_label: 'Только приватные окна',
 			tabs_label: 'Вкладок: ',
-			windows_label: 'окон: '
+			windows_label: 'окон: ',
 		},
-		ko: {
+		'ko-KR': {
+			language_name: 'Korean (한국어)',
+			language_btn: 'Lang',
+			language_confirm: '✓ Change',
+			language_cancel: '✕ Cancel',
+			language_selection_tooltip: 'Select session panel interface language',
 			title: '세션',
 			new_session: '새로운 세션',
 			session_name_placeholder: '세션 이름',
 			all_windows: '모든 창',
 			only_selected: '선택한 탭만',
 			add_session_btn: '세션 추가',
+			add_session_btn_desc: '세션 추가',
 			refresh_sessions_btn: '⇄',
+			refresh_sessions_btn_desc: 'Refresh session list and clear session name',
 			saved_sessions: 'Saved Sessions',
 			sort_title: '정렬',
 			sort_date: '날짜순 정렬',
@@ -124,6 +158,8 @@
 			open_number_sessions: 'Are you sure you want to open $N selected sessions?',
 			open_number_sessions_general: '',
 			open_confirm: '⚠ Yes, open',
+			overwrite_prompt: 'Are you sure you want to overwrite session $T?',
+			overwrite_confirm: '⚠ Yes, overwrite',
 			time_created_label: '만든 시각 <time></time>',
 			today_label: 'today',
 			open_in_new_window_button: '새 창에서 열기',
@@ -131,16 +167,23 @@
 			private_windows_not_saved_label: 'Private window(s) not saved',
 			private_windows_only_label: 'Private window(s) only',
 			tabs_label: 'Tabs: ',
-			windows_label: 'windows: '
+			windows_label: 'windows: ',
 		},
-		it: {
+		'it-IT': {
+			language_name: 'Italian (Italiano)',
+			language_btn: 'Lang',
+			language_confirm: '✓ Change',
+			language_cancel: '✕ Cancel',
+			language_selection_tooltip: 'Select session panel interface language',
 			title: 'Sessioni',
 			new_session: 'Nuova sessione',
 			session_name_placeholder: 'Nome sessione',
 			all_windows: 'Tutte le finestre',
 			only_selected: 'Solo schede selezionate',
 			add_session_btn: 'Aggiungi sessione',
+			add_session_btn_desc: 'Aggiungi sessione',
 			refresh_sessions_btn: '⇄',
+			refresh_sessions_btn_desc: 'Refresh session list and clear session name',
 			saved_sessions: 'Saved Sessions',
 			sort_title: 'Ordina per...',
 			sort_date: 'Ordina per data',
@@ -159,6 +202,8 @@
 			open_number_sessions: 'Are you sure you want to open $N selected sessions?',
 			open_number_sessions_general: '',
 			open_confirm: '⚠ Yes, open',
+			overwrite_prompt: 'Are you sure you want to overwrite session $T?',
+			overwrite_confirm: '⚠ Yes, overwrite',
 			time_created_label: 'Creata <time></time>',
 			today_label: 'today',
 			open_in_new_window_button: 'Apri in una nuova finestra',
@@ -166,16 +211,23 @@
 			private_windows_not_saved_label: 'Private window(s) not saved',
 			private_windows_only_label: 'Private window(s) only',
 			tabs_label: 'Tabs: ',
-			windows_label: 'windows: '
+			windows_label: 'windows: ',
 		},
-		de: {
+		'de-DE': {
+			language_name: 'German (Deutsch)',
+			language_btn: 'Lang',
+			language_confirm: '✓ Change',
+			language_cancel: '✕ Cancel',
+			language_selection_tooltip: 'Select session panel interface language',
 			title: 'Sitzungen',
 			new_session: 'Neue Sitzung',
 			session_name_placeholder: 'Name der Sitzung',
 			all_windows: 'Alle Fenster',
 			only_selected: 'Nur ausgewählte Tabs',
 			add_session_btn: 'Sitzung hinzufügen',
+			add_session_btn_desc: 'Sitzung hinzufügen',
 			refresh_sessions_btn: '⇄',
+			refresh_sessions_btn_desc: 'Refresh session list and clear session name',
 			saved_sessions: 'Saved Sessions',
 			sort_title: 'Sortieren nach...',
 			sort_date: 'Sortieren nach Datum',
@@ -194,6 +246,8 @@
 			open_number_sessions: 'Are you sure you want to open $N selected sessions?',
 			open_number_sessions_general: '',
 			open_confirm: '⚠ Yes, open',
+			overwrite_prompt: 'Are you sure you want to overwrite session $T?',
+			overwrite_confirm: '⚠ Yes, overwrite',
 			time_created_label: 'Erstellt <time></time>',
 			today_label: 'today',
 			open_in_new_window_button: 'In neuem Fenster öffnen',
@@ -201,16 +255,23 @@
 			private_windows_not_saved_label: 'Private window(s) not saved',
 			private_windows_only_label: 'Private window(s) only',
 			tabs_label: 'Tabs: ',
-			windows_label: 'windows: '
+			windows_label: 'windows: ',
 		},
-			nl: {
+		'nl-NL': {
+			language_name: 'Dutch (Nederlands)',
+			language_btn: 'Lang',
+			language_confirm: '✓ Change',
+			language_cancel: '✕ Cancel',
+			language_selection_tooltip: 'Select session panel interface language',
 			title: 'Sessies',
 			new_session: 'Nieuwe sessie',
 			session_name_placeholder: 'Sessienaam',
 			all_windows: 'Alle vensters',
 			only_selected: 'Alleen geselecteerde tabbladen',
 			add_session_btn: 'Sessie toevoegen',
+			add_session_btn_desc: 'Sessie toevoegen',
 			refresh_sessions_btn: '⇄',
+			refresh_sessions_btn_desc: 'Refresh session list and clear session name',
 			saved_sessions: 'Saved Sessions',
 			sort_title: 'Sorteren op...',
 			sort_date: 'Sorteren op datum',
@@ -229,6 +290,8 @@
 			open_number_sessions: 'Are you sure you want to open $N selected sessions?',
 			open_number_sessions_general: '',
 			open_confirm: '⚠ Yes, open',
+			overwrite_prompt: 'Are you sure you want to overwrite session $T?',
+			overwrite_confirm: '⚠ Yes, overwrite',
 			time_created_label: 'Toegevoegd om <time></time>',
 			today_label: 'today',
 			open_in_new_window_button: 'Openen in nieuw venster',
@@ -236,16 +299,23 @@
 			private_windows_not_saved_label: 'Private window(s) not saved',
 			private_windows_only_label: 'Private window(s) only',
 			tabs_label: 'Tabs: ',
-			windows_label: 'windows: '
+			windows_label: 'windows: ',
 		},
-		ja: {
+		'ja-JP': {
+			language_name: 'Japanese (日本語)',
+			language_btn: 'Lang',
+			language_confirm: '✓ Change',
+			language_cancel: '✕ Cancel',
+			language_selection_tooltip: 'Select session panel interface language',
 			title: 'セッション',
 			new_session: '新しいセッション',
 			session_name_placeholder: 'セッション名',
 			all_windows: '全てのウィンドウ',
 			only_selected: '選択したタブのみ',
 			add_session_btn: 'セッションを保存',
+			add_session_btn_desc: 'セッションを保存',
 			refresh_sessions_btn: '⇄',
+			refresh_sessions_btn_desc: 'Refresh session list and clear session name',
 			saved_sessions: 'Saved Sessions',
 			sort_title: '並べ替え...',
 			sort_date: '日付で並べ替え',
@@ -264,6 +334,8 @@
 			open_number_sessions: 'Are you sure you want to open $N selected sessions?',
 			open_number_sessions_general: '',
 			open_confirm: '⚠ Yes, open',
+			overwrite_prompt: 'Are you sure you want to overwrite session $T?',
+			overwrite_confirm: '⚠ Yes, overwrite',
 			time_created_label: '作成日 <time></time>',
 			today_label: 'today',
 			open_in_new_window_button: '新しいウィンドウで開く',
@@ -271,16 +343,23 @@
 			private_windows_not_saved_label: 'Private window(s) not saved',
 			private_windows_only_label: 'Private window(s) only',
 			tabs_label: 'Tabs: ',
-			windows_label: 'windows: '
+			windows_label: 'windows: ',
 		},
-		pt_br: {
+		'pt-BR': {
+			language_name: 'Brazilian Portuguese (Português brasileiro)',
+			language_btn: 'Lang',
+			language_confirm: '✓ Change',
+			language_cancel: '✕ Cancel',
+			language_selection_tooltip: 'Select session panel interface language',
 			title: 'Sessões',
 			new_session: 'Nova sessão',
 			session_name_placeholder: 'Nome da sessão',
 			all_windows: 'Todas as janelas',
 			only_selected: 'Apenas abas selecionadas',
 			add_session_btn: 'Adicionar sessão',
+			add_session_btn_desc: 'Adicionar sessão',
 			refresh_sessions_btn: '⇄',
+			refresh_sessions_btn_desc: 'Refresh session list and clear session name',
 			saved_sessions: 'Saved Sessions',
 			sort_title: 'Organizar por...',
 			sort_date: 'Organizar por data',
@@ -299,6 +378,8 @@
 			open_number_sessions: 'Are you sure you want to open $N selected sessions?',
 			open_number_sessions_general: '',
 			open_confirm: '⚠ Yes, open',
+			overwrite_prompt: 'Are you sure you want to overwrite session $T?',
+			overwrite_confirm: '⚠ Yes, overwrite',
 			time_created_label: 'Criado em <time></time>',
 			today_label: 'today',
 			open_in_new_window_button: 'Abrir em uma nova janela',
@@ -306,16 +387,23 @@
 			private_windows_not_saved_label: 'Private window(s) not saved',
 			private_windows_only_label: 'Private window(s) only',
 			tabs_label: 'Tabs: ',
-			windows_label: 'windows: '
+			windows_label: 'windows: ',
 		},
-		pl_pl: {
+		'pl-PL': {
+			language_name: 'Polish (Polski)',
+			language_btn: 'Lang',
+			language_confirm: '✓ Change',
+			language_cancel: '✕ Cancel',
+			language_selection_tooltip: 'Select session panel interface language',
 			title: 'Sesje',
 			new_session: 'Nowa sesja',
 			session_name_placeholder: 'Nazwa sesji',
 			all_windows: 'Wszystkie okna',
 			only_selected: 'Tylko zaznaczone karty',
 			add_session_btn: 'Dodaj sesję',
+			add_session_btn_desc: 'Dodaj sesję',
 			refresh_sessions_btn: '⇄',
+			refresh_sessions_btn_desc: 'Refresh session list and clear session name',
 			saved_sessions: 'Saved Sessions',
 			sort_title: 'Sortuj według...',
 			sort_date: 'Sortuj według daty',
@@ -334,6 +422,8 @@
 			open_number_sessions: 'Are you sure you want to open $N selected sessions?',
 			open_number_sessions_general: '',
 			open_confirm: '⚠ Yes, open',
+			overwrite_prompt: 'Are you sure you want to overwrite session $T?',
+			overwrite_confirm: '⚠ Yes, overwrite',
 			time_created_label: 'Utworzono <time></time>',
 			today_label: 'today',
 			open_in_new_window_button: 'Otwórz w nowym oknie',
@@ -341,9 +431,10 @@
 			private_windows_not_saved_label: 'Private window(s) not saved',
 			private_windows_only_label: 'Private window(s) only',
 			tabs_label: 'Tabs: ',
-			windows_label: 'windows: '
-		}
-	}[LANGUAGE];
+			windows_label: 'windows: ',
+		},
+	};
+	
 	
 	/*
 	 * Key is the ID of your advanced panel. This must be UNIQUE (across the whole vivaldi UI). If in doubt, append your name to ensure it is unique
@@ -358,105 +449,19 @@
 	 */
 	const CUSTOM_PANELS = {
 		sessions_lonm: {
-			title: l10n.title,
+			title: "Sessions",
 			url: "vivaldi://sessions",
 			switch: `<span>
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="5 0 10 10">
 						<path d="M7 2h6v1h-6v-1zm0 2h6v1h-6v-1zm0 2h6v1h-6v-1z"></path>
 					</svg>
 				</span>`,
-			initialHTML: `
-				<div class="add-session-group">
-					<h2>${l10n.new_session}</h2>
-					<input type="text" placeholder="${l10n.session_name_placeholder}" class="session-name">
-					<span class="add-session-checkboxes">
-						<label><input type="checkbox" class="all-windows"><span>${l10n.all_windows}</span><label> ‎</label></label>
-						<label><input type="checkbox" class="selected-tabs"><span>${l10n.only_selected}</span></label>
-					</span>
-					<span class="add-session-buttons">
-						<input type="button" class="add-session" value="${l10n.add_session_btn}"></input>
-						<input type="button" class="refresh-sessions" value="${l10n.refresh_sessions_btn}"></input>
-					</span>
-				</div>
-				<div class="saved-sessions">
-					<h2>${l10n.saved_sessions}</h2>
-				</div>
-				<div class="sortselector sortselector-compact">
-					<select class="sortselector-dropdown" title="${l10n.sort_title}" tabindex="-1">
-						<option value="visitTime">${l10n.sort_date}</option>
-						<option value="title">${l10n.sort_name}</option>
-					</select>
-					<button class="sortselector-button direction-descending" title="${l10n.sort_asc}" tabindex="-1">
-						<svg width="11" height="6" viewBox="0 0 11 6" xmlns="http://www.w3.org/2000/svg">
-							<path d="M5.5.133l.11-.11 4.456 4.456-1.498 1.497L5.5 2.91 2.432 5.976.934 4.48 5.39.022l.11.11z"></path>
-						</svg>
-					</button>
-					<button class="sortselector-button direction-ascending selected" title="${l10n.sort_desc}" tabindex="-1">
-						<svg width="11" height="6" viewBox="0 0 11 6" xmlns="http://www.w3.org/2000/svg">
-							<path d="M5.5.133l.11-.11 4.456 4.456-1.498 1.497L5.5 2.91 2.432 5.976.934 4.48 5.39.022l.11.11z"></path>
-						</svg>
-					</button>
-				</div>
-				<section class="saved-sessions-list">
-					<section class="sessionslist">
-						<ul>
-						</ul>
-					</section>
-				</section>
-				<div class="remarks">
-					<p><span style="font-weight: bold">${privateWindowsNotSavedDisplayedPostfix}</span>${l10n.private_windows_not_saved_label}</p>
-					<p><span style="font-weight: bold">${privateWindowsOnlyDisplayedPostfix}</span>${l10n.private_windows_only_label}</p>
-				</div>
-				<div class="modal-container" id="modal-container-del">
-					<div class="confirm" id="confirm-del">
-						<p>${l10n.delete_prompt}</p>
-						<button id="yes-del">${l10n.delete_confirm}</button>
-						<button id="no-del" id="no-del">${l10n.action_cancel}</button>
-					</div>
-				</div>
-				<div class="modal-container" id="modal-container-open-new">
-					<div class="confirm" id="confirm-open-new">
-						<p>${l10n.open_number_sessions}</p>
-						<button id="yes-open-new">${l10n.open_confirm}</button>
-						<button id="no-open-new">${l10n.action_cancel}</button>
-					</div>
-				</div>
-				<div class="modal-container" id="modal-container-open-current">
-					<div class="confirm" id="confirm-open-current">
-						<p>${l10n.open_number_sessions}</p>
-						<button id="yes-open-current">${l10n.open_confirm}</button>
-						<button id="no-open-current">${l10n.action_cancel}</button>
-					</div>
-				</div>
-				<template class="session-item">
-					<li>
-						<div>
-							<h3></h3>
-							<span>${l10n.time_created_label}</span>
-						</div>
-						<button class="open-new" title="${l10n.open_in_new_window_button}">
-							<svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
-								<path d="M21 6h-16v14h16v-14zm-11 2h2v2h-2v-2zm-3 0h2v2h-2v-2zm12 10h-12v-7h12v7zm0-8h-6v-2h6v2z"></path>
-							</svg>
-						</button>
-						<button class="open-current" title="${l10n.open_in_current_window_button}">
-							<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-								<path d="M0 9h16v2h-16v-2zm0-4h8v4h-8v-4z"></path>
-							<path opacity=".5" d="M9 5h7v3h-7z"></path>
-							</svg>
-						</button>
-						<button class="delete" title="${l10n.delete_button}">
-							<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
-								<path d="M10.2.5l-.7-.7L5 4.3.5-.2l-.7.7L4.3 5-.2 9.5l.7.7L5 5.7l4.5 4.5.7-.7L5.7 5"></path>
-							</svg>
-						</button>
-					</li>
-				</template>`,
+			initialHTML: "", //Will set localized HTML later
 			module: function(){
 				/*
-				 * Returns if rightest decimal digit is 0 or 1-4 or 5-20 (21-24 is treated as 1-4, 
-				 * 25-30 as 5-20, 31-34 as 1-4, 35-40 as 5-20, etc). Useful for Slavic languages only
-				 * @returns string from string array 'ends' (which must contain 3 strings)
+				 * Returns if rightest decimal digit is 1 or 2-4 or 5-20 (21 is treated as 1, 22-24 is treated as 2-4, 
+				 * 25-30 as 5-20, 31 as 1, 32-34 as 2-4, 35-40 as 5-20, etc). Useful for Slavic languages only
+				 * @returns string from 3 string parameters according to number parameter
 				 */
 				function getNumWithEnding(num, form_1, form_2_4, form_5_20){
 					if(
@@ -481,9 +486,8 @@
 				 * @returns string array of names
 				 */
 				function getSelectedSessionNames(){
-					selectedSessions = Array.from(document.querySelectorAll("#sessions_lonm li.selected"));
-					
-					return selectedSessions.map(x => x.getAttribute("data-session-name"));
+					SelectedSessions = Array.from(document.querySelectorAll("#sessions_lonm li.selected"));
+					return SelectedSessions.map(x => x.getAttribute("data-session-name"));
 				}
 				
 				/*
@@ -506,49 +510,111 @@
 						return;
 					}
 					
+					let currentSession = e.currentTarget;
+					let sessionName = currentSession.querySelector('div h3').innerText;
+					let isPrivateSessionClicked = isPrivateSession(sessionName);
+					
 					if(e.altKey){
-						const itemList = document.querySelectorAll("#sessions_lonm li");
+						const sessionList = document.querySelectorAll("#sessions_lonm li");
 						
-						itemList.forEach(item => item.classList.add("selected"));
+						sessionList.forEach(session => session.classList.add("selected"));
 					} else if(e.shiftKey){
-						let firstItem = null;
-						let lastItem = null;
+						let firstSession = null;
+						let lastSession = null;
 						const currentItem = e.currentTarget;
 						
-						const itemList = document.querySelectorAll("#sessions_lonm li");
-						itemList.forEach(item => {
-							if(firstItem == null && (item == currentItem || item.classList.contains("selected"))){
-								firstItem = item;
-							} else if(item == currentItem || item.classList.contains("selected")){
-								lastItem = item;
+						const sessionList = document.querySelectorAll("#sessions_lonm li");
+						sessionList.forEach(session => {
+							if(firstSession === null && (session == currentItem || session.classList.contains("selected"))){
+								firstSession = session;
+							} else if(session == currentItem || session.classList.contains("selected")){
+								lastSession = session;
 							}
 						});
 						
-						itemList.forEach(item => {
-							if(firstItem != null && firstItem != item){
-								item.classList.toggle("selected", false);
+						sessionList.forEach(session => {
+							if(firstSession != null && firstSession != session){
+								session.classList.toggle("selected", false);
 							}
-							else if(firstItem == item){
-								item.classList.toggle("selected", true);
-								firstItem = null;
+							else if(firstSession == session){
+								session.classList.toggle("selected", true);
+								firstSession = null;
 							}
-							else if(firstItem == null && lastItem != null && lastItem != item){
-								item.classList.toggle("selected", true);
+							else if(firstSession === null && lastSession != null && lastSession != session){
+								session.classList.toggle("selected", true);
 							}
-							else if(firstItem == null && lastItem == item){
-								item.classList.toggle("selected", true);
-								lastItem = null;
+							else if(firstSession === null && lastSession == session){
+								session.classList.toggle("selected", true);
+								lastSession = null;
 							}
 							else {
-								item.classList.toggle("selected", false);
+								session.classList.toggle("selected", false);
 							}
 						});
 					} else if(e.ctrlKey){
 						e.currentTarget.classList.toggle("selected");
 					} else {
 						const oldselect = document.querySelectorAll("#sessions_lonm li.selected");
-						oldselect.forEach(item => item.classList.remove("selected"));
+						oldselect.forEach(session => session.classList.remove("selected"));
 						e.currentTarget.classList.add("selected");
+					}
+					
+					
+					let firstSelectedSession = null;
+					let previosClickedSession = null;
+					LastClickedSession = e.currentTarget;
+					
+					const allSessions = document.querySelectorAll("#sessions_lonm li");
+					allSessions.forEach(session => { //Remember first selected session to make it 'last selected' if 'last selected' is deselected
+						if(firstSelectedSession === null && session.classList.contains("selected")){
+							firstSelectedSession = session;
+						}
+						
+						if(session.classList.contains("last-selected")){
+							if(session.classList.contains("selected")){
+								previosClickedSession = session;
+							}
+							
+							session.classList.remove("last-selected");
+						}
+					});
+					
+					let lastSelectedSession = null;
+					if(previosClickedSession !== null && LastClickedSession !== null && !LastClickedSession.classList.contains("selected")){
+						previosClickedSession.classList.add("last-selected");
+						lastSelectedSession = null;
+					} else if(LastClickedSession.classList.contains("selected")){
+						LastClickedSession.classList.add("last-selected");
+						lastSelectedSession = LastClickedSession;
+					} else {
+						LastClickedSession = firstSelectedSession;
+						if(LastClickedSession !== null){
+							LastClickedSession.classList.add("last-selected");
+						}
+						lastSelectedSession = null;
+					}
+					
+					if(lastSelectedSession === null){
+						sessionName = "";
+					} else if(!CurrentWindowIsPrivate && !isPrivateSessionClicked){
+						sessionName = convertDisplayedSessionName(sessionName, true, 2);
+					} else if(CurrentWindowIsPrivate && isPrivateSessionClicked){
+						sessionName = convertDisplayedSessionName(sessionName, true, 2);
+					} else {
+						sessionName = "";
+					}
+					document.querySelector('#sessions_lonm .add-session-group input.session-name').value = sessionName;
+				}
+				
+				/*
+				 * Returns if displayed session is private
+				 * @param {displayedSessionName} string
+				 */
+				function isPrivateSession(displayedSessionName){
+					if(displayedSessionName.substring(displayedSessionName.length - PrivateWindowsOnlyDisplayedPostfix.length) === PrivateWindowsOnlyDisplayedPostfix){
+						return true;
+					} else {
+						return false;
 					}
 				}
 				
@@ -557,10 +623,102 @@
 				 * Locale string seems to be the best at getting the correct time for any given timezone
 				 * @param {Date} date object
 				 */
-				function dateToFileSafeString(date){
-					const badChars = /[\\/:\*\?"<>\|]/gi;
-					let escaped = date.toLocaleString().replace(/:/g, "`");
-					return escaped.replace(badChars, '.');
+				function dateToFileSafeStringExceptTime(date){
+					const badChars = /[\\/\*\?"<>\|]/gi;
+					return date.toLocaleString().replace(badChars, '.');
+				}
+				
+				/* Turns a string into a string that can be used in a file name, except for char ':'
+				 * @param {filename} string
+				 */
+				function getSafeFilenameExceptTime(filename){
+					const badChars = /[\\/\*\?"<>\|]/gi;
+					return filename.replace(badChars, '.');
+				}
+				
+				/* Turns a string into a string that can be used in a file name
+				 * @param {filename} string
+				 */
+				function getSafeFilename(filename){
+					return getSafeFilenameExceptTime(filename).replace(/:/g, "`");
+				}
+				
+				/*
+				 * Converts displayed session name to user friendly string
+				 * @param {displayedSessionName} string
+				 * @param {removeTabWindowCount} bool: removes '[tab count@window count]'
+				 * @param {removeDisplayedPostfix} number: 0 - don't remove, 1 - remove not saved private window(s) postfix, 2 - remove any postfix.
+				 */
+				function convertDisplayedSessionName(displayedSessionName, removeTabWindowCount, removeDisplayedPostfix){
+					if(removeDisplayedPostfix > 0){
+						if(displayedSessionName.substring(displayedSessionName.length - PrivateWindowsOnlyDisplayedPostfix.length) === PrivateWindowsOnlyDisplayedPostfix){
+							if(removeDisplayedPostfix === 2){
+								displayedSessionName = displayedSessionName.substring(0, displayedSessionName.length - PrivateWindowsOnlyDisplayedPostfix.length);
+							}
+						} else if(displayedSessionName.substring(displayedSessionName.length - PrivateWindowsNotSavedDisplayedPostfix.length) === PrivateWindowsNotSavedDisplayedPostfix){
+							displayedSessionName = displayedSessionName.substring(0, displayedSessionName.length - PrivateWindowsNotSavedDisplayedPostfix.length);
+						}
+					}
+					
+					if(removeTabWindowCount){
+						displayedSessionName = displayedSessionName.replace(/(.*)\s\[\d+@?\d*\](.*)$/, '$1$2');
+					}
+					
+					return displayedSessionName;
+				}
+				
+				/*
+				 * Removes spaces and em spaces from the end of string
+				 * @param {sessionName} string
+				 * @param {removePostfix} number: 0 - don't remove, 1 - remove not saved private window(s) postfix, 2 - remove any postfix.
+				 */
+				function trimSessionName(sessionName, removePostfix){
+					sessionName = convertSessionName(sessionName, true, true, removePostfix, true);
+					let lastChar = sessionName.substring(sessionName.length - 1);
+					while(lastChar === ' ' || lastChar === '\u2002'){
+						sessionName = sessionName.substring(0, sessionName.length - 1);
+						lastChar = sessionName.substring(sessionName.length - 1);
+					}
+					
+					return sessionName;
+				}
+				
+				/*
+				 * Converts session name to user friendly string
+				 * @param {sessionName} string
+				 * @param {replaceTime} bool: replace '`' by ':'
+				 * @param {removeTabWindowCount} bool: removes '[tab count@window count]'
+				 * @param {removePostfix} number: 0 - don't remove, 1 - remove not saved private window(s) postfix, 2 - remove any postfix.
+				 * @param {addDisplayedPostfix} bool
+				 */
+				function convertSessionName(sessionName, replaceTime, removeTabWindowCount, removePostfix, addDisplayedPostfix){
+					if(removePostfix > 0){
+						if(sessionName.substring(sessionName.length - PrivateWindowsOnlyFilenamePostfix.length) === PrivateWindowsOnlyFilenamePostfix){
+							if(removePostfix === 2){
+								sessionName = sessionName.substring(0, sessionName.length - PrivateWindowsOnlyFilenamePostfix.length);
+								
+								if(addDisplayedPostfix){
+									sessionName += PrivateWindowsOnlyDisplayedPostfix;
+								}
+							}
+						} else if(sessionName.substring(sessionName.length - PrivateWindowsNotSavedFilenamePostfix.length) === PrivateWindowsNotSavedFilenamePostfix){
+							sessionName = sessionName.substring(0, sessionName.length - PrivateWindowsNotSavedFilenamePostfix.length);
+							
+							if(addDisplayedPostfix){
+								sessionName += PrivateWindowsNotSavedDisplayedPostfix;
+							}
+						}
+					}
+					
+					if(removeTabWindowCount){
+						sessionName = sessionName.replace(/(.*)\s\[\d+@?\d*\](.*)$/, '$1$2');
+					}
+					
+					if(replaceTime){
+						sessionName = sessionName.replace(/`/g, ':');
+					}
+					
+					return sessionName;
 				}
 				
 				/*
@@ -568,28 +726,29 @@
 				 * @param e button click event
 				 */
 				function addSessionClick(e){
-					var name = document.querySelector('#sessions_lonm .add-session-group input.session-name').value;
+					let name = document.querySelector('#sessions_lonm .add-session-group input.session-name').value;
 					const saveAllWindows = document.querySelector('#sessions_lonm .add-session-group input.all-windows').checked;
 					const saveSelectedTabs = document.querySelector('#sessions_lonm .add-session-group input.selected-tabs').checked;
 					const markedTabs = document.querySelectorAll(".tab.marked");
 					
-					const nameDate = dateToFileSafeString(new Date());
-					if(oldNameDate == nameDate){ //Disable too frequent session saves
+					const nameDate = dateToFileSafeStringExceptTime(new Date());
+					if(OldNameDate === nameDate){ //Disable too frequent session saves
 						return;
 					}
-					oldNameDate = nameDate;
+					OldNameDate = nameDate;
 					
 					if(name === ""){
 						name = nameDate.substring(0, nameDate.length - 3); //Remove seconds from session name
 					}
-					
-					const options = {
+					SaveFilename = getSafeFilename(name);
+						
+					Options = {
 						saveOnlyWindowId: saveAllWindows ? 0 : window.vivaldiWindowId
 					};
 					
 					let selectedTabsCount = 0;
 					if(saveSelectedTabs && markedTabs && markedTabs.length > 0){
-						options.ids = Array.from(markedTabs).map(tab => Number(tab.id.replace("tab-", "")));
+						Options.ids = Array.from(markedTabs).map(tab => Number(tab.id.replace("tab-", "")));
 						selectedTabsCount = markedTabs.length;
 					}
 					
@@ -604,7 +763,6 @@
 						let privateWindowsCount = 0;
 						let privateTabsCount = 0;
 						
-						let currentWindowIsPrivate = false;
 						for(let i = 0; i < openedWindows.length; i++){
 							openedTabsCount += openedWindows[i].tabs.length;
 								
@@ -615,51 +773,72 @@
 							if(openedWindows[i].incognito){
 								privateWindowsCount++;
 								privateTabsCount += openedWindows[i].tabs.length;
-								
-								if(openedWindows[i].id === window.vivaldiWindowId){
-									currentWindowIsPrivate = true;
-								}
 							}
 						}
 						
 						if(selectedTabsCount === 0){
-							if(currentWindowIsPrivate){
+							if(CurrentWindowIsPrivate){
 								if(saveAllWindows && privateWindowsCount > 1){
-									name += " [" + privateTabsCount + "@" + privateWindowsCount + "]" + privateWindowsOnlyFilenamePostfix;
+									SaveFilename += " [" + privateTabsCount + "@" + privateWindowsCount + "]" + PrivateWindowsOnlyFilenamePostfix;
 								} else {
-									name += " [" + currentWindowTabsCount + "]" + privateWindowsOnlyFilenamePostfix;
+									SaveFilename += " [" + currentWindowTabsCount + "]" + PrivateWindowsOnlyFilenamePostfix;
 								}
 							} else {
 								if(saveAllWindows){
 									if(privateWindowsCount === 0){
 										if(openedWindowsCount > 1){
-											name += " [" + openedTabsCount + "@" + openedWindowsCount + "]";
+											SaveFilename += " [" + openedTabsCount + "@" + openedWindowsCount + "]";
 										} else {
-											name += " [" + openedTabsCount + "]";
+											SaveFilename += " [" + openedTabsCount + "]";
 										}
 									} else {
 										if(openedWindowsCount - privateWindowsCount > 1){
-											name += " [" + (openedTabsCount - privateTabsCount) + "@" + (openedWindowsCount - privateWindowsCount) + "]" + privateWindowsNotSavedFilenamePostfix;
+											SaveFilename += " [" + (openedTabsCount - privateTabsCount) + "@" + (openedWindowsCount - privateWindowsCount) + "]" + PrivateWindowsNotSavedFilenamePostfix;
 										} else if(openedWindowsCount - privateWindowsCount > 0){
-											name += " [" + (openedTabsCount - privateTabsCount) + "]" + privateWindowsNotSavedFilenamePostfix;
+											SaveFilename += " [" + (openedTabsCount - privateTabsCount) + "]" + PrivateWindowsNotSavedFilenamePostfix;
 										} else {
 											return;
 										}
 									}
 								} else {
-									name += " [" + currentWindowTabsCount + "]";
+									SaveFilename += " [" + currentWindowTabsCount + "]";
 								}
 							}
 						} else {
-							name += " [" + selectedTabsCount + "]";
+							SaveFilename += " [" + selectedTabsCount + "]";
 						}
 						
-						vivaldi.sessionsPrivate.saveOpenTabs(name, options, () => {
-							document.querySelector('#sessions_lonm .add-session-group input.session-name').value = "";
-							document.querySelector('#sessions_lonm .add-session-group input.all-windows').checked = false;
-							document.querySelector('#sessions_lonm .add-session-group input.selected-tabs').checked = false;
-							updateList();
-						});
+						
+						const savedSessionsLi = Array.from(document.getElementsByTagName('li'));
+						const savedSessions = savedSessionsLi.map(x => x.getAttribute("data-session-name"));
+						let savedSessionNameFound = false;
+						
+						for(let i = 0; i < savedSessions.length; i++){
+							let friendlySavedSessionName;
+							if(CurrentWindowIsPrivate){
+								savedSessionNameFound = (convertSessionName(savedSessions[i], false, true, 0, false) === convertSessionName(SaveFilename, false, true, 0, false));
+								friendlySavedSessionName = trimSessionName(savedSessions[i], 2);
+							} else {
+								savedSessionNameFound = (convertSessionName(savedSessions[i], false, true, 1, false) === convertSessionName(SaveFilename, false, true, 1, false));
+								friendlySavedSessionName = trimSessionName(savedSessions[i], 2);
+							}
+							
+							if(savedSessionNameFound){
+								SelectedSessions = new Array();
+								SelectedSessions.push(savedSessions[i]);
+								
+								const overwrite_t = l10nLocalized.overwrite_prompt.replace('$T', friendlySavedSessionName);
+								confirmMessage(overwrite_t, "overwrite");
+								break;
+							}
+						}
+						
+						
+						if(!savedSessionNameFound){
+							vivaldi.sessionsPrivate.saveOpenTabs(SaveFilename, Options, () => {
+								updateList();
+							});
+						}
 					});
 				}
 				
@@ -700,24 +879,80 @@
 				}
 				
 				/*
+				 * User cancelled language change/remove/open/overwrite
+				 * @param e event
+				 */
+				function actionCancelClick(e){
+					let select = document.getElementById("LONM_SESSIONS_PANEL_LANGUAGE_SELECT");
+					select.value = LANGUAGE;
+					
+					document.querySelector("#modal-container-language").classList.remove("show");
+					document.querySelector("#modal-container-overwrite").classList.remove("show");
+					document.querySelector("#modal-container-del").classList.remove("show");
+					document.querySelector("#modal-container-open-new").classList.remove("show");
+					document.querySelector("#modal-container-open-current").classList.remove("show");
+				}
+				
+				/*
+				 * User clicked language change button
+				 * @param e click event
+				 */
+				function languageClick(e){
+					const language = l10nLocalized.language_selection_tooltip + '.';
+					confirmMessage(language, "language");
+				}
+				
+				/*
+				 * User confirmed language change
+				 * @param e event
+				 */
+				function languageConfirmClick(e){
+					document.querySelector("#modal-container-language").classList.remove("show");
+					
+					let oldLanguageValue = LANGUAGE;
+					LANGUAGE = document.querySelector("#LONM_SESSIONS_PANEL_LANGUAGE_SELECT").value;
+						
+					chrome.storage.local.set({ ["LONM_SESSIONS_PANEL_LANGUAGE"]: LANGUAGE }, () => {
+						if(oldLanguageValue != LANGUAGE){
+							const currentlyOpen = document.querySelectorAll(".webpanel-stack .panel");
+							currentlyOpen.forEach(convertWebPanelToAdvancedPanel);
+						}
+					});
+				}
+				
+				/*
+				 * User confirmed overwrite
+				 * @param e event
+				 * REMARK: Want to overwrite current and only update UI after final write
+				 */
+				function overwriteConfirmClick(e){
+					document.querySelector("#modal-container-overwrite").classList.remove("show");
+					vivaldi.sessionsPrivate.delete(SelectedSessions[0], ( ) => {
+						vivaldi.sessionsPrivate.saveOpenTabs(SaveFilename, Options, () => {});
+						updateList();
+					});
+				}
+				
+				/*
 				 * User clicked remove button
 				 * @param e click event
 				 */
 				function deleteClick(e){
-					selectedSessions = getSelectedSessionNames();
+					SelectedSessions = getSelectedSessionNames();
 					
-					if(selectedSessions.length === 1){
-						const delete_t = l10n.delete_prompt.replace('$T', '"' + selectedSessions[0] + '"');
+					if(SelectedSessions.length === 1){
+						const trimmedFilename = trimSessionName(SelectedSessions[0], 1);
+						const delete_t = l10nLocalized.delete_prompt.replace('$T', trimmedFilename);
 						confirmMessage(delete_t, "del");
 					} else {
 						let delete_n = '';
 						
-						if(l10n.delete_number_sessions_general === ''){
-							delete_n = l10n.delete_number_sessions.replace('$N', selectedSessions.length);
+						if(l10nLocalized.delete_number_sessions_general === ''){
+							delete_n = l10nLocalized.delete_number_sessions.replace('$N', SelectedSessions.length);
 						} else {
-							const sessionsText = getNumWithEnding(selectedSessions.length, l10n.number_sessions_1_form, l10n.number_sessions_2_4_form, l10n.number_sessions_5_20_form);
+							const sessionsText = getNumWithEnding(SelectedSessions.length, l10nLocalized.number_sessions_1_form, l10nLocalized.number_sessions_2_4_form, l10nLocalized.number_sessions_5_20_form);
 								
-							delete_n = l10n.delete_number_sessions_general.replace('$N', sessionsText);
+							delete_n = l10nLocalized.delete_number_sessions_general.replace('$N', sessionsText);
 						}
 						
 						confirmMessage(delete_n, "del");
@@ -732,28 +967,18 @@
 				function deleteConfirmClick(e){
 					document.querySelector("#modal-container-del").classList.remove("show");
 					
-					for(let i = 0; i < selectedSessions.length - 1; i++){
-						vivaldi.sessionsPrivate.delete(selectedSessions[i],() => {});
+					for(let i = 0; i < SelectedSessions.length - 1; i++){
+						vivaldi.sessionsPrivate.delete(SelectedSessions[i],() => {});
 					}
-					vivaldi.sessionsPrivate.delete(selectedSessions[selectedSessions.length - 1], ( )=> {
+					vivaldi.sessionsPrivate.delete(SelectedSessions[SelectedSessions.length - 1], () => {
 						updateList();
 					});
 				}
 				
-				/*
-				 * User cancelled remove
-				 * @param e event
-				 */
-				function actionCancelClick(e){
-					document.querySelector("#modal-container-del").classList.remove("show");
-					document.querySelector("#modal-container-open-new").classList.remove("show");
-					document.querySelector("#modal-container-open-current").classList.remove("show");
-				}
-				
 				function openSessions(newWindow){
-					selectedSessions.forEach(item => {
+					SelectedSessions.forEach(session => {
 						vivaldi.sessionsPrivate.open(
-							item,
+							session,
 							{openInNewWindow: newWindow}
 						);
 					});
@@ -764,19 +989,19 @@
 				 * @param e click event
 				 */
 				function openInNewWindowClick(e){
-					selectedSessions = getSelectedSessionNames();
+					SelectedSessions = getSelectedSessionNames();
 					
-					if(selectedSessions.length === 1) {
+					if(SelectedSessions.length === 1){
 						openSessions(true);
 					} else {
 						let open_n = '';
 						
-						if(l10n.open_number_sessions_general === '') {
-							open_n = l10n.open_number_sessions.replace('$N', selectedSessions.length);
+						if(l10nLocalized.open_number_sessions_general === ''){
+							open_n = l10nLocalized.open_number_sessions.replace('$N', SelectedSessions.length);
 						} else {
-							const sessionsText = getNumWithEnding(selectedSessions.length, l10n.number_sessions_1_form, l10n.number_sessions_2_4_form, l10n.number_sessions_5_20_form);
+							const sessionsText = getNumWithEnding(SelectedSessions.length, l10nLocalized.number_sessions_1_form, l10nLocalized.number_sessions_2_4_form, l10nLocalized.number_sessions_5_20_form);
 								
-							open_n = l10n.open_number_sessions_general.replace('$N', sessionsText);
+							open_n = l10nLocalized.open_number_sessions_general.replace('$N', sessionsText);
 						}
 						
 						confirmMessage(open_n, "open-new");
@@ -793,19 +1018,19 @@
 				 * @param e click event
 				 */
 				function openInCurrentWindowClick(e){
-					selectedSessions = getSelectedSessionNames();
+					SelectedSessions = getSelectedSessionNames();
 					
-					if(selectedSessions.length === 1){
+					if(SelectedSessions.length === 1){
 						openSessions(false);
 					} else {
 						let open_n = '';
 						
-						if(l10n.open_number_sessions_general === '') {
-							open_n = l10n.open_number_sessions.replace('$N', selectedSessions.length);
+						if(l10nLocalized.open_number_sessions_general === ''){
+							open_n = l10nLocalized.open_number_sessions.replace('$N', SelectedSessions.length);
 						} else {
-							const sessionsText = getNumWithEnding(selectedSessions.length, l10n.number_sessions_1_form, l10n.number_sessions_2_4_form, l10n.number_sessions_5_20_form);
+							const sessionsText = getNumWithEnding(SelectedSessions.length, l10nLocalized.number_sessions_1_form, l10nLocalized.number_sessions_2_4_form, l10nLocalized.number_sessions_5_20_form);
 								
-							open_n = l10n.open_number_sessions_general.replace('$N', sessionsText);
+							open_n = l10nLocalized.open_number_sessions_general.replace('$N', sessionsText);
 						}
 						
 						confirmMessage(open_n, "open-current");
@@ -833,43 +1058,43 @@
 					const template = document.querySelector("#sessions_lonm template.session-item");
 					const el = document.importNode(template.content, true);
 					
-					let timedSessionName = session.name.replace(/`/g, ':');
+					let timedSessionName = convertSessionName(session.name, true, false, 2, true);
 					
-					const tabCount = timedSessionName.replace(/.*\s\[(\d+)@?\d*\].*$/, '$1');
+					const tabCount = session.name.replace(/.*\s\[(\d+)@?\d*\].*$/, '$1');
 					let windowCount = ''; //Set to '0' to show window count if it is 0
 					let pattern = new RegExp(/.*\s\[\d+@\d+\].*$/);
-					if(pattern.test(timedSessionName)){
-						windowCount = timedSessionName.replace(/.*\s\[\d+@(\d+)\].*$/, '$1');
+					if(pattern.test(session.name)){
+						windowCount = session.name.replace(/.*\s\[\d+@(\d+)\].*$/, '$1');
 					}
 					
-					let friendlySessionName = timedSessionName.replace(/(.*)\s\[\d+@?\d*\]!?!?(.*)$/, '$1$2');
-					friendlySessionName += ' (' + l10n.tabs_label + tabCount;
+					let friendlySessionName = convertSessionName(session.name, true, true, 2, false);
+					friendlySessionName += ' [' + l10nLocalized.tabs_label + tabCount;
 					if(windowCount != ''){
-						friendlySessionName += ', ' + l10n.windows_label + windowCount;
+						friendlySessionName += ', ' + l10nLocalized.windows_label + windowCount;
 					}
 					
-					if(timedSessionName.substring(timedSessionName.length - privateWindowsOnlyFilenamePostfix.length) === privateWindowsOnlyFilenamePostfix) {
-						friendlySessionName = friendlySessionName + ', ' + l10n.private_windows_only_label.toLowerCase();
-						timedSessionName = timedSessionName.substring(0, timedSessionName.length - privateWindowsOnlyFilenamePostfix.length) + privateWindowsOnlyDisplayedPostfix;
-					} else if(timedSessionName.substring(timedSessionName.length - privateWindowsNotSavedFilenamePostfix.length) === privateWindowsNotSavedFilenamePostfix) {
-						friendlySessionName = friendlySessionName + ', ' + l10n.private_windows_not_saved_label.toLowerCase();
-						timedSessionName = timedSessionName.substring(0, timedSessionName.length - privateWindowsNotSavedFilenamePostfix.length) + privateWindowsNotSavedDisplayedPostfix;
+					if(session.name.substring(session.name.length - PrivateWindowsOnlyFilenamePostfix.length) === PrivateWindowsOnlyFilenamePostfix){
+						friendlySessionName = friendlySessionName + ', ' + l10nLocalized.private_windows_only_label.toLowerCase();
+					} else if(session.name.substring(session.name.length - PrivateWindowsNotSavedFilenamePostfix.length) === PrivateWindowsNotSavedFilenamePostfix){
+						friendlySessionName = friendlySessionName + ', ' + l10nLocalized.private_windows_not_saved_label.toLowerCase();
 					}
-					friendlySessionName += ')';
+					
+					friendlySessionName += ']';
 					
 					const date = new Date(session.createDateJS);
 					const sessionDate = (new Date(session.createDateJS)).setHours(0,0,0,0);
-					const nowDate = (new Date()).setHours(0,0,0,0);
+					const currentDate = (new Date()).setHours(0,0,0,0);
 					let dateIfToday = dateToString(date);
 					let sessionTime = '';
-					if(sessionDate == nowDate){
+					if(sessionDate === currentDate){
 						sessionTime = dateIfToday.replace(/^.*,\s(\d\d:\d\d:\d\d)/, '$1');
-						dateIfToday = l10n.today_label + ', ' + sessionTime;
+						dateIfToday = l10nLocalized.today_label + ', ' + sessionTime;
 					}
 
 					el.querySelector("h3").innerText = timedSessionName;
 					el.querySelector("h3").setAttribute("title", friendlySessionName);
 					el.querySelector("time").innerText = dateIfToday;
+					el.querySelector("time").setAttribute("title", friendlySessionName);
 					el.querySelector("time").setAttribute("datetime", date.toISOString());
 					el.querySelector("li").addEventListener("click", listItemClick);
 					el.querySelector(".open-new").addEventListener("click", openInNewWindowClick);
@@ -921,6 +1146,11 @@
 				 * Get the array of sessions and recreate the list in the panel
 				 */
 				function updateList(){
+					document.querySelector('#sessions_lonm .add-session-group input.session-name').value = "";
+					document.querySelector('#sessions_lonm .add-session-group input.all-windows').checked = false;
+					document.querySelector('#sessions_lonm .add-session-group input.selected-tabs').checked = false;
+					
+					LastClickedSession = null;
 					const existingList = document.querySelector("#sessions_lonm .sessionslist ul");
 					
 					if(existingList){
@@ -951,6 +1181,11 @@
 					document.querySelector("#sessions_lonm .sortselector-dropdown").addEventListener("change", sortMethodChange);
 					document.querySelector("#sessions_lonm .add-session-group .add-session-buttons .add-session").addEventListener("click", addSessionClick);
 					document.querySelector("#sessions_lonm .add-session-group .add-session-buttons .refresh-sessions").addEventListener("click", refreshSessionsClick);
+					document.querySelector("#sessions_lonm .add-session-group .language-button").addEventListener("click", languageClick);
+					document.querySelector("#yes-language").addEventListener("click", languageConfirmClick);
+					document.querySelector("#no-language").addEventListener("click", actionCancelClick);
+					document.querySelector("#yes-overwrite").addEventListener("click", overwriteConfirmClick);
+					document.querySelector("#no-overwrite").addEventListener("click", actionCancelClick);
 					document.querySelector("#yes-del").addEventListener("click", deleteConfirmClick);
 					document.querySelector("#no-del").addEventListener("click", actionCancelClick);
 					document.querySelector("#yes-open-new").addEventListener("click", openInNewWindowConfirmClick);
@@ -1074,16 +1309,143 @@
 	 *	change to aborted. Title changing should be briefly delayed
 	 */
 	function advancedPanelCreated(node, panel, panelID){
-		if(node.getAttribute("advancedPanel")){
+		let isAdvancedPanel = node.getAttribute("advancedPanel");
+		if(isAdvancedPanel && panelID !== "sessions_lonm"){
 			return;
 		}
+		
+		
+		l10nLocalized = l10n[LANGUAGE];
+		sessions_lonmTitle = l10nLocalized.title;
+		sessions_lonmInitialHTML = '\n'
++'		<div class="add-session-group">\n'
++'			<span class="add-session-label"><span class="new-session">'+l10nLocalized.new_session+'</span><input type="button" class="language-button" value="'+l10nLocalized.language_btn+'" title="'+l10nLocalized.language_selection_tooltip+'"></input></span>\n'
++'			<input type="text" placeholder="'+l10nLocalized.session_name_placeholder+'" class="session-name">\n'
++'			<span class="add-session-checkboxes-group">\n'
++'				<input type="checkbox" class="all-windows"><span class="add-session-checkboxes-labels">'+l10nLocalized.all_windows+'&nbsp;&nbsp;&nbsp;</span>\n'
++'				<input type="checkbox" class="selected-tabs"><span class="add-session-checkboxes-labels">'+l10nLocalized.only_selected+'</span>\n'
++'			</span>\n'
++'			<span class="add-session-buttons">\n'
++'				<input type="button" class="add-session" value="'+l10nLocalized.add_session_btn+'" title="'+l10nLocalized.add_session_btn_desc+'"></input>\n'
++'				<input type="button" class="refresh-sessions" value="'+l10nLocalized.refresh_sessions_btn+'" title="'+l10nLocalized.refresh_sessions_btn_desc+'"></input>\n'
++'			</span>\n'
++'		</div>\n'
++'		<div class="saved-sessions">\n'
++'			<h2>'+l10nLocalized.saved_sessions+'</h2>\n'
++'		</div>\n'
++'		<div class="sortselector sortselector-compact">\n'
++'			<select class="sortselector-dropdown" title="'+l10nLocalized.sort_title+'" tabindex="-1">\n'
++'				<option value="visitTime">'+l10nLocalized.sort_date+'</option>\n'
++'				<option value="title">'+l10nLocalized.sort_name+'</option>\n'
++'			</select>\n'
++'			<button class="sortselector-button direction-descending" title="'+l10nLocalized.sort_asc+'" tabindex="-1">\n'
++'				<svg width="11" height="6" viewBox="0 0 11 6" xmlns="http://www.w3.org/2000/svg">\n'
++'					<path d="M5.5.133l.11-.11 4.456 4.456-1.498 1.497L5.5 2.91 2.432 5.976.934 4.48 5.39.022l.11.11z"></path>\n'
++'				</svg>\n'
++'			</button>\n'
++'			<button class="sortselector-button direction-ascending selected" title="'+l10nLocalized.sort_desc+'" tabindex="-1">\n'
++'				<svg width="11" height="6" viewBox="0 0 11 6" xmlns="http://www.w3.org/2000/svg">\n'
++'					<path d="M5.5.133l.11-.11 4.456 4.456-1.498 1.497L5.5 2.91 2.432 5.976.934 4.48 5.39.022l.11.11z"></path>\n'
++'				</svg>\n'
++'			</button>\n'
++'		</div>\n'
++'		<section class="saved-sessions-list">\n'
++'			<section class="sessionslist">\n'
++'				<ul>\n'
++'				</ul>\n'
++'			</section>\n'
++'		</section>\n'
++'		<div class="remarks">\n'
++'			<p><span style="font-weight: bold">'+PrivateWindowsNotSavedDisplayedPostfix+'</span>'+l10nLocalized.private_windows_not_saved_label+'</p>\n'
++'			<p><span style="font-weight: bold">'+PrivateWindowsOnlyDisplayedPostfix+'</span>'+l10nLocalized.private_windows_only_label+'</p>\n'
++'		</div>\n'
++'		<div class="modal-container" id="modal-container-language">\n'
++'			<div class="confirm" id="confirm-language">\n'
++'				<p>'+l10nLocalized.language_selection_tooltip+'</p>\n'
++'				<div align="center" class="language-container">\n'
++'					<select class="language-select" id="LONM_SESSIONS_PANEL_LANGUAGE_SELECT"></select>\n'
++'				</div>\n'
++'				<button id="yes-language">'+l10nLocalized.language_confirm+'</button>\n'
++'				<button id="no-language">'+l10nLocalized.language_cancel+'</button>\n'
++'			</div>\n'
++'		</div>\n'
++'		<div class="modal-container" id="modal-container-overwrite">\n'
++'			<div class="confirm" id="confirm-overwrite">\n'
++'				<p>'+l10nLocalized.overwrite_prompt+'</p>\n'
++'				<button id="yes-overwrite">'+l10nLocalized.overwrite_confirm+'</button>\n'
++'				<button id="no-overwrite">'+l10nLocalized.action_cancel+'</button>\n'
++'			</div>\n'
++'		</div>\n'
++'		<div class="modal-container" id="modal-container-del">\n'
++'			<div class="confirm" id="confirm-del">\n'
++'				<p>'+l10nLocalized.delete_prompt+'</p>\n'
++'				<button id="yes-del">'+l10nLocalized.delete_confirm+'</button>\n'
++'				<button id="no-del">'+l10nLocalized.action_cancel+'</button>\n'
++'			</div>\n'
++'		</div>\n'
++'		<div class="modal-container" id="modal-container-open-new">\n'
++'			<div class="confirm" id="confirm-open-new">\n'
++'				<p>'+l10nLocalized.open_number_sessions+'</p>\n'
++'				<button id="yes-open-new">'+l10nLocalized.open_confirm+'</button>\n'
++'				<button id="no-open-new">'+l10nLocalized.action_cancel+'</button>\n'
++'			</div>\n'
++'		</div>\n'
++'		<div class="modal-container" id="modal-container-open-current">\n'
++'			<div class="confirm" id="confirm-open-current">\n'
++'				<p>'+l10nLocalized.open_number_sessions+'</p>\n'
++'				<button id="yes-open-current">'+l10nLocalized.open_confirm+'</button>\n'
++'				<button id="no-open-current">'+l10nLocalized.action_cancel+'</button>\n'
++'			</div>\n'
++'		</div>\n'
++'		<template class="session-item">\n'
++'			<li>\n'
++'				<div>\n'
++'					<h3></h3>\n'
++'					<span>'+l10nLocalized.time_created_label+'</span>\n'
++'				</div>\n'
++'				<button class="open-new" title="'+l10nLocalized.open_in_new_window_button+'">\n'
++'					<svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">\n'
++'						<path d="M21 6h-16v14h16v-14zm-11 2h2v2h-2v-2zm-3 0h2v2h-2v-2zm12 10h-12v-7h12v7zm0-8h-6v-2h6v2z"></path>\n'
++'					</svg>\n'
++'				</button>\n'
++'				<button class="open-current" title="'+l10nLocalized.open_in_current_window_button+'">\n'
++'					<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">\n'
++'						<path d="M0 9h16v2h-16v-2zm0-4h8v4h-8v-4z"></path>\n'
++'					<path opacity=".5" d="M9 5h7v3h-7z"></path>\n'
++'					</svg>\n'
++'				</button>\n'
++'				<button class="delete" title="'+l10nLocalized.delete_button+'">\n'
++'					<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">\n'
++'						<path d="M10.2.5l-.7-.7L5 4.3.5-.2l-.7.7L4.3 5-.2 9.5l.7.7L5 5.7l4.5 4.5.7-.7L5.7 5"></path>\n'
++'					</svg>\n'
++'				</button>\n'
++'			</li>\n'
++'		</template>';
+		
+		
 		node.setAttribute("advancedPanel", "true");
 		node.querySelector("webview").terminate();
 		const newHTML = document.createElement("div");
-		newHTML.innerHTML = panel.initialHTML;
+		if(panelID === "sessions_lonm"){
+			newHTML.innerHTML = sessions_lonmInitialHTML;
+		} else {
+			newHTML.innerHTML = panel.initialHTML;
+		}
+		
+		if(isAdvancedPanel){
+			if(node.lastChild){
+				node.removeChild(node.lastChild);
+			}
+		}
+		
 		node.appendChild(newHTML);
 		node.id = panelID;
 		panel.module().onInit();
+		
+		if(panelID === "sessions_lonm"){
+			fillLanguageList();
+		}
+		
 		ADVANCED_PANEL_ACTIVATION.observe(node, {attributes: true, attributeFilter: ["class"]});
 		if(node.querySelector("header.webpanel-header")){
 			advancedPanelOpened(node);
@@ -1119,8 +1481,14 @@
 	 */
 	function updateAdvancedPanelTitle(node){
 		const panel = CUSTOM_PANELS[node.id];
-		node.querySelector("header.webpanel-header h1").innerHTML = panel.title;
-		node.querySelector("header.webpanel-header h1").title = panel.title;
+
+		if(node.id === "sessions_lonm"){
+			node.querySelector("header.webpanel-header h1").innerHTML = sessions_lonmTitle;
+			node.querySelector("header.webpanel-header h1").title = sessions_lonmTitle;
+		} else {
+			node.querySelector("header.webpanel-header h1").innerHTML = panel.title;
+			node.querySelector("header.webpanel-header h1").title = panel.title;
+		}
 	}
 	
 	
@@ -1178,18 +1546,47 @@
 		WEB_SWITCH_OBSERVER.observe(panelSwitch, {childList: true});
 	}
 	
+	/* 
+	 * Fill LONM_SESSIONS_PANEL_LANGUAGE_SELECT 'select' tag by the list of supported languages
+	 */
+	function fillLanguageList(){
+		let select = document.getElementById("LONM_SESSIONS_PANEL_LANGUAGE_SELECT");
+		for (let [lang_id, lang_dict] of Object.entries(l10n)){
+			let option = document.createElement("option");
+			option.value = lang_id;
+			option.text = lang_dict.language_name;
+			select.appendChild(option);
+		};
+		
+		select.value = LANGUAGE;
+	}
 	
 	/*
 	 * Initialise the mod. Checking to make sure that the relevant panel element exists first.
 	 */
 	function initMod(){
-		if(document.querySelector("#panels .webpanel-stack")){
-			observeUIState();
-			observePanelSwitchChildren();
-			convertWebPanelButtonstoAdvancedPanelButtons();
-			listenForNewPanelsAndConvertIfNecessary();
+		if(window.vivaldiWindowId){
+			chrome.windows.getCurrent(windowItem => {
+				CurrentWindowIsPrivate = windowItem.incognito;
+				
+				if(document.querySelector("#panels .webpanel-stack")){
+					chrome.storage.local.get(["LONM_SESSIONS_PANEL_LANGUAGE"], setting => {
+						LANGUAGE = setting["LONM_SESSIONS_PANEL_LANGUAGE"];
+						if(LANGUAGE == null){
+							LANGUAGE = "en-GB";
+						}
+						
+						observeUIState();
+						observePanelSwitchChildren();
+						convertWebPanelButtonstoAdvancedPanelButtons();
+						listenForNewPanelsAndConvertIfNecessary();
+					});
+				} else {
+					setTimeout(initMod, 500);
+				}
+			});
 		} else {
-			setTimeout(initMod, 500);
+			setTimeout(init, 500);
 		}
 	}
 	
