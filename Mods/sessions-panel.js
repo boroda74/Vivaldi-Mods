@@ -27,8 +27,8 @@
 	const PrivateWindowsNotSavedFilenamePostfix = '!';
 	const PrivateWindowsOnlyFilenamePostfix = '!!';
 	
-	const PrivateWindowsNotSavedDisplayedPostfix = '*\u2002\u2002'; //Em-spaces at the end
-	const PrivateWindowsOnlyDisplayedPostfix = '**\u2002'; //Em-space at the end
+	const PrivateWindowsNotSavedDisplayedPostfix = '*';
+	const PrivateWindowsOnlyDisplayedPostfix = '**';
 	
 	var LANGUAGE;
 	var l10nLocalized;
@@ -42,7 +42,7 @@
 			language_btn: 'Lang',
 			language_confirm: '✓ Change',
 			language_cancel: '✕ Cancel',
-			language_selection_tooltip: 'Select session panel interface language',
+			language_selection_tooltip: 'Select Session Panel interface language',
 			title: 'Sessions',
 			new_session: 'New Session',
 			session_name_placeholder: 'Session Name',
@@ -130,7 +130,7 @@
 			language_btn: 'Lang',
 			language_confirm: '✓ Change',
 			language_cancel: '✕ Cancel',
-			language_selection_tooltip: 'Select session panel interface language',
+			language_selection_tooltip: 'Select Session Panel interface language',
 			title: '세션',
 			new_session: '새로운 세션',
 			session_name_placeholder: '세션 이름',
@@ -174,7 +174,7 @@
 			language_btn: 'Lang',
 			language_confirm: '✓ Change',
 			language_cancel: '✕ Cancel',
-			language_selection_tooltip: 'Select session panel interface language',
+			language_selection_tooltip: 'Select Session Panel interface language',
 			title: 'Sessioni',
 			new_session: 'Nuova sessione',
 			session_name_placeholder: 'Nome sessione',
@@ -218,7 +218,7 @@
 			language_btn: 'Lang',
 			language_confirm: '✓ Change',
 			language_cancel: '✕ Cancel',
-			language_selection_tooltip: 'Select session panel interface language',
+			language_selection_tooltip: 'Select Session Panel interface language',
 			title: 'Sitzungen',
 			new_session: 'Neue Sitzung',
 			session_name_placeholder: 'Name der Sitzung',
@@ -262,7 +262,7 @@
 			language_btn: 'Lang',
 			language_confirm: '✓ Change',
 			language_cancel: '✕ Cancel',
-			language_selection_tooltip: 'Select session panel interface language',
+			language_selection_tooltip: 'Select Session Panel interface language',
 			title: 'Sessies',
 			new_session: 'Nieuwe sessie',
 			session_name_placeholder: 'Sessienaam',
@@ -306,7 +306,7 @@
 			language_btn: 'Lang',
 			language_confirm: '✓ Change',
 			language_cancel: '✕ Cancel',
-			language_selection_tooltip: 'Select session panel interface language',
+			language_selection_tooltip: 'Select Session Panel interface language',
 			title: 'セッション',
 			new_session: '新しいセッション',
 			session_name_placeholder: 'セッション名',
@@ -350,7 +350,7 @@
 			language_btn: 'Lang',
 			language_confirm: '✓ Change',
 			language_cancel: '✕ Cancel',
-			language_selection_tooltip: 'Select session panel interface language',
+			language_selection_tooltip: 'Select Session Panel interface language',
 			title: 'Sessões',
 			new_session: 'Nova sessão',
 			session_name_placeholder: 'Nome da sessão',
@@ -394,7 +394,7 @@
 			language_btn: 'Lang',
 			language_confirm: '✓ Change',
 			language_cancel: '✕ Cancel',
-			language_selection_tooltip: 'Select session panel interface language',
+			language_selection_tooltip: 'Select Session Panel interface language',
 			title: 'Sesje',
 			new_session: 'Nowa sesja',
 			session_name_placeholder: 'Nazwa sesji',
@@ -668,22 +668,6 @@
 				}
 				
 				/*
-				 * Removes spaces and em spaces from the end of string
-				 * @param {sessionName} string
-				 * @param {removePostfix} number: 0 - don't remove, 1 - remove not saved private window(s) postfix, 2 - remove any postfix.
-				 */
-				function trimSessionName(sessionName, removePostfix){
-					sessionName = convertSessionName(sessionName, true, true, removePostfix, true);
-					let lastChar = sessionName.substring(sessionName.length - 1);
-					while(lastChar === ' ' || lastChar === '\u2002'){
-						sessionName = sessionName.substring(0, sessionName.length - 1);
-						lastChar = sessionName.substring(sessionName.length - 1);
-					}
-					
-					return sessionName;
-				}
-				
-				/*
 				 * Converts session name to user friendly string
 				 * @param {sessionName} string
 				 * @param {replaceTime} bool: replace '`' by ':'
@@ -817,10 +801,10 @@
 							let friendlySavedSessionName;
 							if(CurrentWindowIsPrivate){
 								savedSessionNameFound = (convertSessionName(savedSessions[i], false, true, 0, false) === convertSessionName(SaveFilename, false, true, 0, false));
-								friendlySavedSessionName = trimSessionName(savedSessions[i], 2);
+								friendlySavedSessionName = convertSessionName(savedSessions[i], true, true, 2, true);
 							} else {
 								savedSessionNameFound = (convertSessionName(savedSessions[i], false, true, 1, false) === convertSessionName(SaveFilename, false, true, 1, false));
-								friendlySavedSessionName = trimSessionName(savedSessions[i], 2);
+								friendlySavedSessionName = convertSessionName(savedSessions[i], true, true, 2, true);
 							}
 							
 							if(savedSessionNameFound){
@@ -941,8 +925,8 @@
 					SelectedSessions = getSelectedSessionNames();
 					
 					if(SelectedSessions.length === 1){
-						const trimmedFilename = trimSessionName(SelectedSessions[0], 1);
-						const delete_t = l10nLocalized.delete_prompt.replace('$T', trimmedFilename);
+						const sessionName = convertSessionName(SelectedSessions[0], true, true, 1, true);
+						const delete_t = l10nLocalized.delete_prompt.replace('$T', sessionName);
 						confirmMessage(delete_t, "del");
 					} else {
 						let delete_n = '';
@@ -1317,110 +1301,112 @@
 		
 		l10nLocalized = l10n[LANGUAGE];
 		sessions_lonmTitle = l10nLocalized.title;
-		sessions_lonmInitialHTML = '\n'
-+'		<div class="add-session-group">\n'
-+'			<span class="add-session-label"><span class="new-session">'+l10nLocalized.new_session+'</span><input type="button" class="language-button" value="'+l10nLocalized.language_btn+'" title="'+l10nLocalized.language_selection_tooltip+'"></input></span>\n'
-+'			<input type="text" placeholder="'+l10nLocalized.session_name_placeholder+'" class="session-name">\n'
-+'			<span class="add-session-checkboxes-group">\n'
-+'				<input type="checkbox" class="all-windows"><span class="add-session-checkboxes-labels">'+l10nLocalized.all_windows+'&nbsp;&nbsp;&nbsp;</span>\n'
-+'				<input type="checkbox" class="selected-tabs"><span class="add-session-checkboxes-labels">'+l10nLocalized.only_selected+'</span>\n'
-+'			</span>\n'
-+'			<span class="add-session-buttons">\n'
-+'				<input type="button" class="add-session" value="'+l10nLocalized.add_session_btn+'" title="'+l10nLocalized.add_session_btn_desc+'"></input>\n'
-+'				<input type="button" class="refresh-sessions" value="'+l10nLocalized.refresh_sessions_btn+'" title="'+l10nLocalized.refresh_sessions_btn_desc+'"></input>\n'
-+'			</span>\n'
-+'		</div>\n'
-+'		<div class="saved-sessions">\n'
-+'			<h2>'+l10nLocalized.saved_sessions+'</h2>\n'
-+'		</div>\n'
-+'		<div class="sortselector sortselector-compact">\n'
-+'			<select class="sortselector-dropdown" title="'+l10nLocalized.sort_title+'" tabindex="-1">\n'
-+'				<option value="visitTime">'+l10nLocalized.sort_date+'</option>\n'
-+'				<option value="title">'+l10nLocalized.sort_name+'</option>\n'
-+'			</select>\n'
-+'			<button class="sortselector-button direction-descending" title="'+l10nLocalized.sort_asc+'" tabindex="-1">\n'
-+'				<svg width="11" height="6" viewBox="0 0 11 6" xmlns="http://www.w3.org/2000/svg">\n'
-+'					<path d="M5.5.133l.11-.11 4.456 4.456-1.498 1.497L5.5 2.91 2.432 5.976.934 4.48 5.39.022l.11.11z"></path>\n'
-+'				</svg>\n'
-+'			</button>\n'
-+'			<button class="sortselector-button direction-ascending selected" title="'+l10nLocalized.sort_desc+'" tabindex="-1">\n'
-+'				<svg width="11" height="6" viewBox="0 0 11 6" xmlns="http://www.w3.org/2000/svg">\n'
-+'					<path d="M5.5.133l.11-.11 4.456 4.456-1.498 1.497L5.5 2.91 2.432 5.976.934 4.48 5.39.022l.11.11z"></path>\n'
-+'				</svg>\n'
-+'			</button>\n'
-+'		</div>\n'
-+'		<section class="saved-sessions-list">\n'
-+'			<section class="sessionslist">\n'
-+'				<ul>\n'
-+'				</ul>\n'
-+'			</section>\n'
-+'		</section>\n'
-+'		<div class="remarks">\n'
-+'			<p><span style="font-weight: bold">'+PrivateWindowsNotSavedDisplayedPostfix+'</span>'+l10nLocalized.private_windows_not_saved_label+'</p>\n'
-+'			<p><span style="font-weight: bold">'+PrivateWindowsOnlyDisplayedPostfix+'</span>'+l10nLocalized.private_windows_only_label+'</p>\n'
-+'		</div>\n'
-+'		<div class="modal-container" id="modal-container-language">\n'
-+'			<div class="confirm" id="confirm-language">\n'
-+'				<p>'+l10nLocalized.language_selection_tooltip+'</p>\n'
-+'				<div align="center" class="language-container">\n'
-+'					<select class="language-select" id="LONM_SESSIONS_PANEL_LANGUAGE_SELECT"></select>\n'
-+'				</div>\n'
-+'				<button id="yes-language">'+l10nLocalized.language_confirm+'</button>\n'
-+'				<button id="no-language">'+l10nLocalized.language_cancel+'</button>\n'
-+'			</div>\n'
-+'		</div>\n'
-+'		<div class="modal-container" id="modal-container-overwrite">\n'
-+'			<div class="confirm" id="confirm-overwrite">\n'
-+'				<p>'+l10nLocalized.overwrite_prompt+'</p>\n'
-+'				<button id="yes-overwrite">'+l10nLocalized.overwrite_confirm+'</button>\n'
-+'				<button id="no-overwrite">'+l10nLocalized.action_cancel+'</button>\n'
-+'			</div>\n'
-+'		</div>\n'
-+'		<div class="modal-container" id="modal-container-del">\n'
-+'			<div class="confirm" id="confirm-del">\n'
-+'				<p>'+l10nLocalized.delete_prompt+'</p>\n'
-+'				<button id="yes-del">'+l10nLocalized.delete_confirm+'</button>\n'
-+'				<button id="no-del">'+l10nLocalized.action_cancel+'</button>\n'
-+'			</div>\n'
-+'		</div>\n'
-+'		<div class="modal-container" id="modal-container-open-new">\n'
-+'			<div class="confirm" id="confirm-open-new">\n'
-+'				<p>'+l10nLocalized.open_number_sessions+'</p>\n'
-+'				<button id="yes-open-new">'+l10nLocalized.open_confirm+'</button>\n'
-+'				<button id="no-open-new">'+l10nLocalized.action_cancel+'</button>\n'
-+'			</div>\n'
-+'		</div>\n'
-+'		<div class="modal-container" id="modal-container-open-current">\n'
-+'			<div class="confirm" id="confirm-open-current">\n'
-+'				<p>'+l10nLocalized.open_number_sessions+'</p>\n'
-+'				<button id="yes-open-current">'+l10nLocalized.open_confirm+'</button>\n'
-+'				<button id="no-open-current">'+l10nLocalized.action_cancel+'</button>\n'
-+'			</div>\n'
-+'		</div>\n'
-+'		<template class="session-item">\n'
-+'			<li>\n'
-+'				<div>\n'
-+'					<h3></h3>\n'
-+'					<span>'+l10nLocalized.time_created_label+'</span>\n'
-+'				</div>\n'
-+'				<button class="open-new" title="'+l10nLocalized.open_in_new_window_button+'">\n'
-+'					<svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">\n'
-+'						<path d="M21 6h-16v14h16v-14zm-11 2h2v2h-2v-2zm-3 0h2v2h-2v-2zm12 10h-12v-7h12v7zm0-8h-6v-2h6v2z"></path>\n'
-+'					</svg>\n'
-+'				</button>\n'
-+'				<button class="open-current" title="'+l10nLocalized.open_in_current_window_button+'">\n'
-+'					<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">\n'
-+'						<path d="M0 9h16v2h-16v-2zm0-4h8v4h-8v-4z"></path>\n'
-+'					<path opacity=".5" d="M9 5h7v3h-7z"></path>\n'
-+'					</svg>\n'
-+'				</button>\n'
-+'				<button class="delete" title="'+l10nLocalized.delete_button+'">\n'
-+'					<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">\n'
-+'						<path d="M10.2.5l-.7-.7L5 4.3.5-.2l-.7.7L4.3 5-.2 9.5l.7.7L5 5.7l4.5 4.5.7-.7L5.7 5"></path>\n'
-+'					</svg>\n'
-+'				</button>\n'
-+'			</li>\n'
-+'		</template>';
+		sessions_lonmInitialHTML = '\
+		<div class="add-session-group">\
+			<span class="add-session-label"><span class="new-session">'+l10nLocalized.new_session+'</span>\
+				<button class="language-button" title="'+l10nLocalized.language_selection_tooltip+'"  tabindex="-1"></button>\
+			</span>\
+			<input type="text" placeholder="'+l10nLocalized.session_name_placeholder+'" class="session-name">\
+			<span class="add-session-checkboxes-group">\
+				<input type="checkbox" class="all-windows"><span class="add-session-checkboxes-labels">'+l10nLocalized.all_windows+'&nbsp;&nbsp;&nbsp;</span>\
+				<input type="checkbox" class="selected-tabs"><span class="add-session-checkboxes-labels">'+l10nLocalized.only_selected+'</span>\
+			</span>\
+			<span class="add-session-buttons">\
+				<input type="button" class="add-session" value="'+l10nLocalized.add_session_btn+'" title="'+l10nLocalized.add_session_btn_desc+'"></input>\
+				<input type="button" class="refresh-sessions" value="'+l10nLocalized.refresh_sessions_btn+'" title="'+l10nLocalized.refresh_sessions_btn_desc+'"></input>\
+			</span>\
+		</div>\
+		<div class="saved-sessions">\
+			<h2>'+l10nLocalized.saved_sessions+'</h2>\
+		</div>\
+		<div class="sortselector sortselector-compact">\
+			<select class="sortselector-dropdown" title="'+l10nLocalized.sort_title+'" tabindex="-1">\
+				<option value="visitTime">'+l10nLocalized.sort_date+'</option>\
+				<option value="title">'+l10nLocalized.sort_name+'</option>\
+			</select>\
+			<button class="sortselector-button direction-descending" title="'+l10nLocalized.sort_asc+'" tabindex="-1">\
+				<svg width="11" height="6" viewBox="0 0 11 6" xmlns="http://www.w3.org/2000/svg">\
+					<path d="M5.5.133l.11-.11 4.456 4.456-1.498 1.497L5.5 2.91 2.432 5.976.934 4.48 5.39.022l.11.11z"></path>\
+				</svg>\
+			</button>\
+			<button class="sortselector-button direction-ascending selected" title="'+l10nLocalized.sort_desc+'" tabindex="-1">\
+				<svg width="11" height="6" viewBox="0 0 11 6" xmlns="http://www.w3.org/2000/svg">\
+					<path d="M5.5.133l.11-.11 4.456 4.456-1.498 1.497L5.5 2.91 2.432 5.976.934 4.48 5.39.022l.11.11z"></path>\
+				</svg>\
+			</button>\
+		</div>\
+		<section class="saved-sessions-list">\
+			<section class="sessionslist">\
+				<ul>\
+				</ul>\
+			</section>\
+		</section>\
+		<div class="remarks">\
+			<span>'+PrivateWindowsNotSavedDisplayedPostfix+'</span><span>'+l10nLocalized.private_windows_not_saved_label+'</span>\
+			<span>'+PrivateWindowsOnlyDisplayedPostfix+'</span><span>'+l10nLocalized.private_windows_only_label+'</span>\
+		</div>\
+		<div class="modal-container" id="modal-container-language">\
+			<div class="confirm" id="confirm-language">\
+				<p>'+l10nLocalized.language_selection_tooltip+'</p>\
+				<div align="center" class="language-container">\
+					<select class="language-select" id="LONM_SESSIONS_PANEL_LANGUAGE_SELECT"></select>\
+				</div>\
+				<button id="yes-language">'+l10nLocalized.language_confirm+'</button>\
+				<button id="no-language">'+l10nLocalized.language_cancel+'</button>\
+			</div>\
+		</div>\
+		<div class="modal-container" id="modal-container-overwrite">\
+			<div class="confirm" id="confirm-overwrite">\
+				<p>'+l10nLocalized.overwrite_prompt+'</p>\
+				<button id="yes-overwrite">'+l10nLocalized.overwrite_confirm+'</button>\
+				<button id="no-overwrite">'+l10nLocalized.action_cancel+'</button>\
+			</div>\
+		</div>\
+		<div class="modal-container" id="modal-container-del">\
+			<div class="confirm" id="confirm-del">\
+				<p>'+l10nLocalized.delete_prompt+'</p>\
+				<button id="yes-del">'+l10nLocalized.delete_confirm+'</button>\
+				<button id="no-del">'+l10nLocalized.action_cancel+'</button>\
+			</div>\
+		</div>\
+		<div class="modal-container" id="modal-container-open-new">\
+			<div class="confirm" id="confirm-open-new">\
+				<p>'+l10nLocalized.open_number_sessions+'</p>\
+				<button id="yes-open-new">'+l10nLocalized.open_confirm+'</button>\
+				<button id="no-open-new">'+l10nLocalized.action_cancel+'</button>\
+			</div>\
+		</div>\
+		<div class="modal-container" id="modal-container-open-current">\
+			<div class="confirm" id="confirm-open-current">\
+				<p>'+l10nLocalized.open_number_sessions+'</p>\
+				<button id="yes-open-current">'+l10nLocalized.open_confirm+'</button>\
+				<button id="no-open-current">'+l10nLocalized.action_cancel+'</button>\
+			</div>\
+		</div>\
+		<template class="session-item">\
+			<li>\
+				<div>\
+					<h3></h3>\
+					<span>'+l10nLocalized.time_created_label+'</span>\
+				</div>\
+				<button class="open-new" title="'+l10nLocalized.open_in_new_window_button+'">\
+					<svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">\
+						<path d="M21 6h-16v14h16v-14zm-11 2h2v2h-2v-2zm-3 0h2v2h-2v-2zm12 10h-12v-7h12v7zm0-8h-6v-2h6v2z"></path>\
+					</svg>\
+				</button>\
+				<button class="open-current" title="'+l10nLocalized.open_in_current_window_button+'">\
+					<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">\
+						<path d="M0 9h16v2h-16v-2zm0-4h8v4h-8v-4z"></path>\
+					<path opacity=".5" d="M9 5h7v3h-7z"></path>\
+					</svg>\
+				</button>\
+				<button class="delete" title="'+l10nLocalized.delete_button+'">\
+					<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">\
+						<path d="M10.2.5l-.7-.7L5 4.3.5-.2l-.7.7L4.3 5-.2 9.5l.7.7L5 5.7l4.5 4.5.7-.7L5.7 5"></path>\
+					</svg>\
+				</button>\
+			</li>\
+		</template>';
 		
 		
 		node.setAttribute("advancedPanel", "true");
