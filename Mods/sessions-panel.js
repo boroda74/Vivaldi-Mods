@@ -346,7 +346,7 @@
 			windows_label: 'windows: ',
 		},
 		'pt-BR': {
-			language_name: 'Brazilian Portuguese (Português brasileiro)',
+			language_name: 'Brazilian Portuguese (Português brasil)',
 			language_btn: 'Lang',
 			language_confirm: '✓ Change',
 			language_cancel: '✕ Cancel',
