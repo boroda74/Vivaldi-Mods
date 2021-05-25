@@ -882,7 +882,7 @@
 				 * @param e click event
 				 */
 				function languageClick(e){
-					const language = l10nLocalized.language_selection_tooltip + '.';
+					const language = l10nLocalized.language_selection_tooltip;
 					confirmMessage(language, "language");
 				}
 				
