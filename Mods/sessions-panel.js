@@ -1135,7 +1135,7 @@
 					document.querySelector('#sessions_lonm .add-session-group input.selected-tabs').checked = false;
 					
 					LastClickedSession = null;
-					const existingList = document.querySelector("#sessions_lonm .sessionslist ul");
+					const existingList = document.querySelector("#sessions_lonm .sessions-list ul");
 					
 					if(existingList){
 						existingList.parentElement.removeChild(existingList);
@@ -1144,7 +1144,7 @@
 					vivaldi.sessionsPrivate.getAll(items => {
 						const sorted = sortSessions(items);
 						const newList = createList(sorted);
-						document.querySelector("#sessions_lonm .sessionslist").appendChild(newList);
+						document.querySelector("#sessions_lonm .sessions-list").appendChild(newList);
 					});
 				}
 				
@@ -1335,12 +1335,10 @@
 				</svg>\
 			</button>\
 		</div>\
-		<section class="saved-sessions-list">\
-			<section class="sessionslist">\
+			<section class="sessions-list">\
 				<ul>\
 				</ul>\
 			</section>\
-		</section>\
 		<div class="remarks">\
 			<span>'+PrivateWindowsNotSavedDisplayedPostfix+'</span><span>'+l10nLocalized.private_windows_not_saved_label+'</span>\
 			<span>'+PrivateWindowsOnlyDisplayedPostfix+'</span><span>'+l10nLocalized.private_windows_only_label+'</span>\
@@ -1409,7 +1407,6 @@
 		</template>';
 		
 		
-		node.setAttribute("advancedPanel", "true");
 		node.querySelector("webview").terminate();
 		const newHTML = document.createElement("div");
 		if(panelID === "sessions_lonm"){
@@ -1417,12 +1414,11 @@
 		} else {
 			newHTML.innerHTML = panel.initialHTML;
 		}
-		
 		if(isAdvancedPanel){
-			if(node.lastChild){
-				node.removeChild(node.lastChild);
-			}
+			node.removeChild(node.lastChild);
 		}
+		node.setAttribute("advancedPanel", "true");
+		
 		
 		node.appendChild(newHTML);
 		node.id = panelID;
