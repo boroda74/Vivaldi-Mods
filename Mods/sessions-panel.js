@@ -1,6 +1,6 @@
-﻿/*
+/*
  * Sessions Panel (a mod for Vivaldi)
- * Written by LonM, modified by boroda
+ * Written by LonM, modified by boroda74
  * No Copyright Reserved
  * 
  * ko-KR translation by @dencion
@@ -10,7 +10,7 @@
  * ja-JP by @nkay1005
  * pt-BR by @oinconquistado
  * pl-PL by @supra107
- * ru-RU by @boroda
+ * ru-RU by @boroda74
 */
 
 (function advancedPanels(){
@@ -1137,14 +1137,10 @@
 					LastClickedSession = null;
 					const existingList = document.querySelector("#sessions_lonm .sessions-list ul");
 					
-					if(existingList){
-						existingList.parentElement.removeChild(existingList);
-					}
-					
 					vivaldi.sessionsPrivate.getAll(items => {
 						const sorted = sortSessions(items);
 						const newList = createList(sorted);
-						document.querySelector("#sessions_lonm .sessions-list").appendChild(newList);
+						document.querySelector("#sessions_lonm .sessions-list").replaceChild(newList, existingList);
 					});
 				}
 				
@@ -1160,8 +1156,27 @@
 				 */
 				function onInit(){
 					document.querySelectorAll("#sessions_lonm .sortselector-button").forEach(el => {
+						el.removeEventListener("click", sortOrderChange);
 						el.addEventListener("click", sortOrderChange);
 					});
+					
+					//Remove event listeners if they are already assigned to replace them
+					document.querySelector("#sessions_lonm .sortselector-dropdown").removeEventListener("change", sortMethodChange);
+					document.querySelector("#sessions_lonm .add-session-group .add-session-buttons .add-session").removeEventListener("click", addSessionClick);
+					document.querySelector("#sessions_lonm .add-session-group .add-session-buttons .refresh-sessions").removeEventListener("click", refreshSessionsClick);
+					document.querySelector("#sessions_lonm .add-session-group .language-button").removeEventListener("click", languageClick);
+					document.querySelector("#yes-language").removeEventListener("click", languageConfirmClick);
+					document.querySelector("#no-language").removeEventListener("click", actionCancelClick);
+					document.querySelector("#yes-overwrite").removeEventListener("click", overwriteConfirmClick);
+					document.querySelector("#no-overwrite").removeEventListener("click", actionCancelClick);
+					document.querySelector("#yes-del").removeEventListener("click", deleteConfirmClick);
+					document.querySelector("#no-del").removeEventListener("click", actionCancelClick);
+					document.querySelector("#yes-open-new").removeEventListener("click", openInNewWindowConfirmClick);
+					document.querySelector("#no-open-new").removeEventListener("click", actionCancelClick);
+					document.querySelector("#yes-open-current").removeEventListener("click", openInCurrentWindowConfirmClick);
+					document.querySelector("#no-open-current").removeEventListener("click", actionCancelClick);
+					
+					//Add event listeners
 					document.querySelector("#sessions_lonm .sortselector-dropdown").addEventListener("change", sortMethodChange);
 					document.querySelector("#sessions_lonm .add-session-group .add-session-buttons .add-session").addEventListener("click", addSessionClick);
 					document.querySelector("#sessions_lonm .add-session-group .add-session-buttons .refresh-sessions").addEventListener("click", refreshSessionsClick);
@@ -1407,26 +1422,29 @@
 		</template>';
 		
 		
-		node.querySelector("webview").terminate();
 		const newHTML = document.createElement("div");
 		if(panelID === "sessions_lonm"){
 			newHTML.innerHTML = sessions_lonmInitialHTML;
 		} else {
 			newHTML.innerHTML = panel.initialHTML;
 		}
+		
 		if(isAdvancedPanel){
-			node.removeChild(node.lastChild);
+			node.replaceChild(newHTML, node.lastChild);
+			node.id = panelID;
+		} else {
+			node.querySelector("webview").terminate();
+			
+			node.appendChild(newHTML);
+			node.id = panelID;
+			node.setAttribute("advancedPanel", "true");
 		}
-		node.setAttribute("advancedPanel", "true");
-		
-		
-		node.appendChild(newHTML);
-		node.id = panelID;
 		panel.module().onInit();
 		
 		if(panelID === "sessions_lonm"){
 			fillLanguageList();
 		}
+		
 		
 		ADVANCED_PANEL_ACTIVATION.observe(node, {attributes: true, attributeFilter: ["class"]});
 		if(node.querySelector("header.webpanel-header")){
@@ -1533,6 +1551,7 @@
 	 */
 	function fillLanguageList(){
 		let select = document.getElementById("LONM_SESSIONS_PANEL_LANGUAGE_SELECT");
+		select.innerHTML = "";
 		for (let [lang_id, lang_dict] of Object.entries(l10n)){
 			let option = document.createElement("option");
 			option.value = lang_id;
