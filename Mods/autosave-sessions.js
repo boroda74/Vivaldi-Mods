@@ -1,6 +1,6 @@
 /*
  * Autosave Sessions (a mod for Vivaldi)
- * Written by LonM, modified by boroda
+ * Written by LonM, modified by boroda74
  * No Copyright Reserved
  * 
  * V4.1: Attempt to retry if settings is not ready
@@ -8,7 +8,7 @@
  * v3 : Has own settings section & support private windows again
  * v2 : Better handling of multiple windows
  * 
- * ru-RU translation by @boroda
+ * ru-RU translation by @boroda74
 */
 
 (function autoSaveSessionsMod(){
