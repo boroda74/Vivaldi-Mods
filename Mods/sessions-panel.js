@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Sessions Panel (a mod for Vivaldi)
  * Written by LonM, modified by boroda74
  * No Copyright Reserved
@@ -525,25 +525,25 @@
 						
 						const sessionList = document.querySelectorAll("#sessions_lonm li");
 						sessionList.forEach(session => {
-							if(firstSession === null && (session == currentItem || session.classList.contains("selected"))){
+							if(firstSession === null && (session === currentItem || session.classList.contains("selected"))){
 								firstSession = session;
-							} else if(session == currentItem || session.classList.contains("selected")){
+							} else if(session === currentItem || session.classList.contains("selected")){
 								lastSession = session;
 							}
 						});
 						
 						sessionList.forEach(session => {
-							if(firstSession != null && firstSession != session){
+							if(firstSession !== null && firstSession !== session){
 								session.classList.toggle("selected", false);
 							}
-							else if(firstSession == session){
+							else if(firstSession === session){
 								session.classList.toggle("selected", true);
 								firstSession = null;
 							}
-							else if(firstSession === null && lastSession != null && lastSession != session){
+							else if(firstSession === null && lastSession !== null && lastSession !== session){
 								session.classList.toggle("selected", true);
 							}
-							else if(firstSession === null && lastSession == session){
+							else if(firstSession === null && lastSession === session){
 								session.classList.toggle("selected", true);
 								lastSession = null;
 							}
@@ -618,6 +618,14 @@
 					}
 				}
 				
+				/* Turns a string into a string that can be used in a file name, except for char ':'
+				 * @param {filename} string
+				 */
+				function getSafeFilenameExceptTime(filename){
+					const badChars = /[\\/\*\?"<>\|]/gi;
+					return filename.replace(badChars, '.');
+				}
+				
 				/*
 				 * Turns a date into a string that can be used in a file name
 				 * Locale string seems to be the best at getting the correct time for any given timezone
@@ -625,15 +633,7 @@
 				 */
 				function dateToFileSafeStringExceptTime(date){
 					const badChars = /[\\/\*\?"<>\|]/gi;
-					return date.toLocaleString().replace(badChars, '.');
-				}
-				
-				/* Turns a string into a string that can be used in a file name, except for char ':'
-				 * @param {filename} string
-				 */
-				function getSafeFilenameExceptTime(filename){
-					const badChars = /[\\/\*\?"<>\|]/gi;
-					return filename.replace(badChars, '.');
+					return getSafeFilenameExceptTime(date.toLocaleString());
 				}
 				
 				/* Turns a string into a string that can be used in a file name
@@ -667,19 +667,34 @@
 					return displayedSessionName;
 				}
 				
+				function getTabWindowCountRepresentation(tabCount, windowCount){
+					let representation;
+					
+					if(windowCount > 1){
+						representation = " [" + tabCount + "@" + windowCount + "]";
+					} else if(tabCount > 0){
+						representation = " [" + tabCount + "]";
+					} else {
+						representation = "";
+					}
+					
+					return representation;
+				}
+				
 				/*
 				 * Converts session name to user friendly string
 				 * @param {sessionName} string
 				 * @param {replaceTime} bool: replace '`' by ':'
-				 * @param {removeTabWindowCount} bool: removes '[tab count@window count]'
 				 * @param {removePostfix} number: 0 - don't remove, 1 - remove not saved private window(s) postfix, 2 - remove any postfix.
 				 * @param {addDisplayedPostfix} bool
 				 */
-				function convertSessionName(sessionName, replaceTime, removeTabWindowCount, removePostfix, addDisplayedPostfix){
+				function convertSessionName(sessionName, replaceTime, tabCount, windowCount, removePostfix, addDisplayedPostfix){
 					if(removePostfix > 0){
 						if(sessionName.substring(sessionName.length - PrivateWindowsOnlyFilenamePostfix.length) === PrivateWindowsOnlyFilenamePostfix){
 							if(removePostfix === 2){
 								sessionName = sessionName.substring(0, sessionName.length - PrivateWindowsOnlyFilenamePostfix.length);
+								
+								sessionName += getTabWindowCountRepresentation(tabCount, windowCount);
 								
 								if(addDisplayedPostfix){
 									sessionName += PrivateWindowsOnlyDisplayedPostfix;
@@ -688,14 +703,14 @@
 						} else if(sessionName.substring(sessionName.length - PrivateWindowsNotSavedFilenamePostfix.length) === PrivateWindowsNotSavedFilenamePostfix){
 							sessionName = sessionName.substring(0, sessionName.length - PrivateWindowsNotSavedFilenamePostfix.length);
 							
+							sessionName += getTabWindowCountRepresentation(tabCount, windowCount);
+							
 							if(addDisplayedPostfix){
 								sessionName += PrivateWindowsNotSavedDisplayedPostfix;
 							}
+						} else {
+							sessionName += getTabWindowCountRepresentation(tabCount, windowCount);
 						}
-					}
-					
-					if(removeTabWindowCount){
-						sessionName = sessionName.replace(/(.*)\s\[\d+@?\d*\](.*)$/, '$1$2');
 					}
 					
 					if(replaceTime){
@@ -741,55 +756,26 @@
 						windowTypes: ["normal"]
 					}, openedWindows => {
 						let openedWindowsCount = openedWindows.length;
-						let openedTabsCount = 0;
-						let currentWindowTabsCount = 0;
-						
 						let privateWindowsCount = 0;
-						let privateTabsCount = 0;
 						
 						for(let i = 0; i < openedWindows.length; i++){
-							openedTabsCount += openedWindows[i].tabs.length;
-								
-							if(openedWindows[i].id === window.vivaldiWindowId){
-								currentWindowTabsCount = openedWindows[i].tabs.length;
-							}
-							
 							if(openedWindows[i].incognito){
 								privateWindowsCount++;
-								privateTabsCount += openedWindows[i].tabs.length;
 							}
 						}
 						
 						if(selectedTabsCount === 0){
 							if(CurrentWindowIsPrivate){
-								if(saveAllWindows && privateWindowsCount > 1){
-									SaveFilename += " [" + privateTabsCount + "@" + privateWindowsCount + "]" + PrivateWindowsOnlyFilenamePostfix;
-								} else {
-									SaveFilename += " [" + currentWindowTabsCount + "]" + PrivateWindowsOnlyFilenamePostfix;
-								}
+								SaveFilename += PrivateWindowsOnlyFilenamePostfix;
 							} else {
-								if(saveAllWindows){
-									if(privateWindowsCount === 0){
-										if(openedWindowsCount > 1){
-											SaveFilename += " [" + openedTabsCount + "@" + openedWindowsCount + "]";
-										} else {
-											SaveFilename += " [" + openedTabsCount + "]";
-										}
+								if(saveAllWindows && privateWindowsCount > 0){
+									if(openedWindowsCount > privateWindowsCount){
+										SaveFilename += PrivateWindowsNotSavedFilenamePostfix;
 									} else {
-										if(openedWindowsCount - privateWindowsCount > 1){
-											SaveFilename += " [" + (openedTabsCount - privateTabsCount) + "@" + (openedWindowsCount - privateWindowsCount) + "]" + PrivateWindowsNotSavedFilenamePostfix;
-										} else if(openedWindowsCount - privateWindowsCount > 0){
-											SaveFilename += " [" + (openedTabsCount - privateTabsCount) + "]" + PrivateWindowsNotSavedFilenamePostfix;
-										} else {
-											return;
-										}
+										return;
 									}
-								} else {
-									SaveFilename += " [" + currentWindowTabsCount + "]";
 								}
 							}
-						} else {
-							SaveFilename += " [" + selectedTabsCount + "]";
 						}
 						
 						
@@ -800,11 +786,11 @@
 						for(let i = 0; i < savedSessions.length; i++){
 							let friendlySavedSessionName;
 							if(CurrentWindowIsPrivate){
-								savedSessionNameFound = (convertSessionName(savedSessions[i], false, true, 0, false) === convertSessionName(SaveFilename, false, true, 0, false));
-								friendlySavedSessionName = convertSessionName(savedSessions[i], true, true, 2, true);
+								savedSessionNameFound = (convertSessionName(savedSessions[i], false, 0, 0, 0, false) === convertSessionName(SaveFilename, false, 0, 0, 0, false));
+								friendlySavedSessionName = convertSessionName(savedSessions[i], true, 0, 0, 2, true);
 							} else {
-								savedSessionNameFound = (convertSessionName(savedSessions[i], false, true, 1, false) === convertSessionName(SaveFilename, false, true, 1, false));
-								friendlySavedSessionName = convertSessionName(savedSessions[i], true, true, 2, true);
+								savedSessionNameFound = (convertSessionName(savedSessions[i], false, 0, 0, 1, false) === convertSessionName(SaveFilename, false, 1, false));
+								friendlySavedSessionName = convertSessionName(savedSessions[i], true, 0, 0, 2, true);
 							}
 							
 							if(savedSessionNameFound){
@@ -897,7 +883,7 @@
 					LANGUAGE = document.querySelector("#LONM_SESSIONS_PANEL_LANGUAGE_SELECT").value;
 						
 					chrome.storage.local.set({ ["LONM_SESSIONS_PANEL_LANGUAGE"]: LANGUAGE }, () => {
-						if(oldLanguageValue != LANGUAGE){
+						if(oldLanguageValue !== LANGUAGE){
 							const currentlyOpen = document.querySelectorAll(".webpanel-stack .panel");
 							currentlyOpen.forEach(convertWebPanelToAdvancedPanel);
 						}
@@ -925,7 +911,7 @@
 					SelectedSessions = getSelectedSessionNames();
 					
 					if(SelectedSessions.length === 1){
-						const sessionName = convertSessionName(SelectedSessions[0], true, true, 1, true);
+						const sessionName = convertSessionName(SelectedSessions[0], true, 0, 0, 1, true);
 						const delete_t = l10nLocalized.delete_prompt.replace('$T', sessionName);
 						confirmMessage(delete_t, "del");
 					} else {
@@ -1042,19 +1028,12 @@
 					const template = document.querySelector("#sessions_lonm template.session-item");
 					const el = document.importNode(template.content, true);
 					
-					let timedSessionName = convertSessionName(session.name, true, false, 2, true);
+					let timedSessionName = convertSessionName(session.name, true, session.tabs, session.windows, 2, true);
 					
-					const tabCount = session.name.replace(/.*\s\[(\d+)@?\d*\].*$/, '$1');
-					let windowCount = ''; //Set to '0' to show window count if it is 0
-					let pattern = new RegExp(/.*\s\[\d+@\d+\].*$/);
-					if(pattern.test(session.name)){
-						windowCount = session.name.replace(/.*\s\[\d+@(\d+)\].*$/, '$1');
-					}
-					
-					let friendlySessionName = convertSessionName(session.name, true, true, 2, false);
-					friendlySessionName += ' [' + l10nLocalized.tabs_label + tabCount;
-					if(windowCount != ''){
-						friendlySessionName += ', ' + l10nLocalized.windows_label + windowCount;
+					let friendlySessionName = convertSessionName(session.name, true, 0, 0, 2, false);
+					friendlySessionName += ' [' + l10nLocalized.tabs_label + session.tabs;
+					if(session.windows > 0){
+						friendlySessionName += ', ' + l10nLocalized.windows_label + session.windows;
 					}
 					
 					if(session.name.substring(session.name.length - PrivateWindowsOnlyFilenamePostfix.length) === PrivateWindowsOnlyFilenamePostfix){

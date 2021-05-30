@@ -117,32 +117,22 @@
 					return;
 				}
 
-				const prefix = CURRENT_SETTINGS["LONM_SESSION_AUTOSAVE_PREFIX"] + ' ';
-				const maxOld = CURRENT_SETTINGS["LONM_SESSION_AUTOSAVE_MAX_OLD_SESSIONS"];
-				
 				/* Create the new session */
-				let name = prefix + dateToFileSafeString(new Date());
-				
 				chrome.windows.getAll({
 					populate: true,
 					windowTypes: ["normal"]
 				}, openedWindows => {
-					let openedWindowsCount = openedWindows.length;
-					let openedTabsCount = 0;
+					const prefix = CURRENT_SETTINGS["LONM_SESSION_AUTOSAVE_PREFIX"] + ' ';
+					const maxOld = CURRENT_SETTINGS["LONM_SESSION_AUTOSAVE_MAX_OLD_SESSIONS"];
 					
-					let privateWindows = new Array();
+					let name = prefix + dateToFileSafeString(new Date());
+					
+					let openedWindowsCount = openedWindows.length;
 					let privateWindowsCount = 0;
-					let privateTabsCount = 0;
 					
 					for(let i = 0; i < openedWindows.length; i++){
-						openedTabsCount += openedWindows[i].tabs.length;
-						
 						if(openedWindows[i].incognito){
-							if(CurrentWindowIsPrivate){
-								privateWindows.push(openedWindows[i]);
-							}
 							privateWindowsCount++;
-							privateTabsCount += openedWindows[i].tabs.length;
 						}
 					}
 					
@@ -150,23 +140,17 @@
 					if(!CurrentWindowIsPrivate){
 						let sessionName;
 						
-						if(privateWindowsCount === 0){
-							if(openedWindowsCount > 1){
-								sessionName = name + " [" + openedTabsCount + "@" + openedWindowsCount + "]";
-							} else {
-								sessionName = name + " [" + openedTabsCount + "]";
-							}
-						} else {
-							if(openedWindowsCount - privateWindowsCount > 1){
-								sessionName = name + " [" + (openedTabsCount - privateTabsCount) + "@" + (openedWindowsCount - privateWindowsCount) + "]" + PrivateWindowsNotSavedFilenamePostfix;
-							} else if(openedWindowsCount - privateWindowsCount > 0){
-								sessionName = name + " [" + (openedTabsCount - privateTabsCount) + "]" + PrivateWindowsNotSavedFilenamePostfix;
+						if(privateWindowsCount > 0){
+							if(openedWindowsCount > privateWindowsCount){
+								sessionName = name + PrivateWindowsNotSavedFilenamePostfix;
 							} else {
 								sessionName = "";
 							}
+						} else {
+							sessionName = name;
 						}
 						
-						if(sessionName != ""){
+						if(sessionName !== ""){
 							/* Final sanity check */
 							if (!isValidName(sessionName)){
 								throw new Error('[Autosave Sessions] Cannot name a session as ' + sessionName);
@@ -175,7 +159,7 @@
 							vivaldi.sessionsPrivate.saveOpenTabs(sessionName, { saveOnlyWindowId: 0 }, () => {}); /* There is no way to tell if it failed */
 							
 							/* Delete older (not private) sessions */
-							let autosavesOnly = allSessions.filter(x => x.name.indexOf(prefix) === 0).filter(x => x.name.substring(x.name.length - PrivateWindowsOnlyFilenamePostfix.length) != PrivateWindowsOnlyFilenamePostfix);
+							let autosavesOnly = allSessions.filter(x => x.name.indexOf(prefix) === 0).filter(x => x.name.substring(x.name.length - PrivateWindowsOnlyFilenamePostfix.length) !== PrivateWindowsOnlyFilenamePostfix);
 							let oldestFirst = autosavesOnly.sort((a,b) => {return a.createDateJS - b.createDateJS;});
 							
 							let numberOfSessions = oldestFirst.length + 1; /* length + 1 as we have just added a new one */
@@ -190,13 +174,7 @@
 					
 					
 					if(CurrentWindowIsPrivate){ //Have checked 'savePrivate' earlier, so will skip this check
-						let sessionName;
-						
-						if(privateWindowsCount > 1){
-							sessionName = name + " [" + privateTabsCount + "@" + privateWindowsCount + "]" + PrivateWindowsOnlyFilenamePostfix;
-						} else {
-							sessionName = name + " [" + privateTabsCount + "]" + PrivateWindowsOnlyFilenamePostfix;
-						}
+						let sessionName = name + PrivateWindowsOnlyFilenamePostfix;
 						
 						/* Final sanity check */
 						if (!isValidName(sessionName)){
@@ -319,7 +297,7 @@
 			CURRENT_SETTINGS = value;
 			
 			let newAutosaveInterval = CURRENT_SETTINGS["LONM_SESSION_AUTOSAVE_DELAY_MINUTES"] * OneMinuteInterval;
-			if(AutosaveInterval != newAutosaveInterval){
+			if(AutosaveInterval !== newAutosaveInterval){
 				AutosaveInterval = newAutosaveInterval;
 				AutosaveTimeout = getTimeout();
 				initSwitching();
@@ -500,12 +478,12 @@
 			CURRENT_SETTINGS[this.id] = input.target.checked;
 		} else {
 			input.target.checkValidity();
-			if(input.target.reportValidity() && input.target.value != ""){
+			if(input.target.reportValidity() && input.target.value !== ""){
 				CURRENT_SETTINGS[this.id] = input.target.value;
 			}
 		}
 		
-		if(this.id == "LONM_AUTOSAVE_SESSIONS_LANGUAGE" && oldLanguageValue != CURRENT_SETTINGS[this.id]){
+		if(this.id === "LONM_AUTOSAVE_SESSIONS_LANGUAGE" && oldLanguageValue !== CURRENT_SETTINGS[this.id]){
 			initModUILocalization();
 			
 			if(oldPrefixIsDefault){
@@ -516,12 +494,12 @@
 		chrome.storage.local.set({ [this.id]: CURRENT_SETTINGS[this.id], ["LONM_SESSION_AUTOSAVE_PREFIX"]: CURRENT_SETTINGS["LONM_SESSION_AUTOSAVE_PREFIX"] }, () => {
 			if(this.id === "LONM_SESSION_AUTOSAVE_DELAY_MINUTES"){
 				let newAutosaveInterval = CURRENT_SETTINGS[this.id] * OneMinuteInterval;
-				if(AutosaveInterval != newAutosaveInterval){
+				if(AutosaveInterval !== newAutosaveInterval){
 					AutosaveInterval = newAutosaveInterval;
 					AutosaveTimeout = getTimeout();
 					initSwitching();
 				}
-			} else if(this.id == "LONM_AUTOSAVE_SESSIONS_LANGUAGE" && oldLanguageValue != CURRENT_SETTINGS[this.id]){
+			} else if(this.id === "LONM_AUTOSAVE_SESSIONS_LANGUAGE" && oldLanguageValue !== CURRENT_SETTINGS[this.id]){
 				modSettingsPage();
 			}
 		});
@@ -538,7 +516,7 @@
 		const title = document.createElement("h3");
 		title.innerText = modSetting.title;
 		div.appendChild(title);
-		if(modSetting.description != ""){
+		if(modSetting.description !== ""){
 			const info = document.createElement("p");
 			info.className = "info";
 			info.innerText = modSetting.description;
