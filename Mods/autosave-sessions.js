@@ -43,31 +43,31 @@
 		'en-GB': {
 			language_name: 'English (UK English) \u2002\u2002', //Two Em-spaces at the end are to equalize language dropdown width with other setting fields
 			mod_name: 'Autosave Sessions Mod',
-			language: 'Language',
+			language: '\nLanguage',
 			language_description: 'Select mod language',
 			autosave_interval: 'Period (minutes)', 
 			autosave_interval_description: 'Set 0 to disable autosaving', 
-			max_old_sessions: 'Old Sessions Count', 
+			max_old_sessions: '\nOld Sessions Count', 
 			max_old_sessions_description: 'Maximum number of autosaved sessions (old sessions will be deleted)', 
-			prefix: 'Prefix',
+			prefix: '\nPrefix',
 			file_prefix: 'AUTO',
 			file_prefix_description: 'A unique prefix made up of the following characters: A-Z 0-9 _ - <space>',
-			save_private_windows: 'Save Private Windows',
+			save_private_windows: '\nSave Private Windows',
 			save_private_windows_description: 'Save opened private windows to separate session'
 		},
 		'ru-RU': {
 			language_name: 'Russian (Русский)',
 			mod_name: 'Мод автосохранения сессий',
-			language: 'Язык интефейса',
+			language: '\nЯзык интефейса',
 			language_description: 'Выберите язык мода',
 			autosave_interval: 'Период (в минутах)', 
 			autosave_interval_description: 'Установите 0, чтобы запретить автосохранение', 
-			max_old_sessions: 'Количество хранимых сессий',
+			max_old_sessions: '\nКоличество хранимых сессий',
 			max_old_sessions_description: 'Максимальное число автосохраняемых сессий (старые будут удаляться)',
-			prefix: 'Префикс',
+			prefix: '\nПрефикс',
 			file_prefix: 'АВТО',
 			file_prefix_description: 'Уникальный префикс, содержащий символы: A-Z А-Я 0-9 _ - <пробел>',
-			save_private_windows: 'Сохранять приватные окна',
+			save_private_windows: '\nСохранять приватные окна',
 			save_private_windows_description: 'Сохранять открытые приватные окна в отдельную сессию'
 		},
 	};
@@ -449,7 +449,7 @@
 		{ //This dictionary must be 3d (#2 - 0, 1, 2) in array
 			id: "LONM_SESSION_AUTOSAVE_PREFIX",
 			type: String,
-			pattern: "[\\wа-яА-Я_\\-]{0,20}",
+			pattern: "[\\wа-яА-Я_\\-\\s]{0,20}",
 			default: "AUTO",
 		},
 		{
