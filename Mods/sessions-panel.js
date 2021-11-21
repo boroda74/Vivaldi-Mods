@@ -1548,7 +1548,7 @@
 	/*
 	 * Initialise the mod. Checking to make sure that the relevant panel element exists first.
 	 */
-	function initMod(){
+	function initMod() {
 		if(window.vivaldiWindowId){
 			chrome.windows.getCurrent(windowItem => {
 				CurrentWindowIsPrivate = windowItem.incognito;
@@ -1570,7 +1570,7 @@
 				}
 			});
 		} else {
-			setTimeout(init, 500);
+			setTimeout(initMod, 500);
 		}
 	}
 	
