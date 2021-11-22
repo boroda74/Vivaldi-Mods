@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Sessions Panel (a mod for Vivaldi)
  * Written by LonM, modified by boroda74
  * No Copyright Reserved
@@ -948,6 +948,7 @@
 				function openSessions(newWindow){
 					SelectedSessions.forEach(session => {
 						vivaldi.sessionsPrivate.open(
+							window.vivaldiWindowId,
 							session,
 							{openInNewWindow: newWindow}
 						);
@@ -970,7 +971,7 @@
 							open_n = l10nLocalized.open_number_sessions.replace('$N', SelectedSessions.length);
 						} else {
 							const sessionsText = getNumWithEnding(SelectedSessions.length, l10nLocalized.number_sessions_1_form, l10nLocalized.number_sessions_2_4_form, l10nLocalized.number_sessions_5_20_form);
-								
+							
 							open_n = l10nLocalized.open_number_sessions_general.replace('$N', sessionsText);
 						}
 						
