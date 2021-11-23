@@ -632,7 +632,6 @@
 				 * @param {Date} date object
 				 */
 				function dateToFileSafeStringExceptTime(date){
-					const badChars = /[\\/\*\?"<>\|]/gi;
 					return getSafeFilenameExceptTime(date.toLocaleString());
 				}
 				
@@ -684,11 +683,11 @@
 				/*
 				 * Converts session name to user friendly string
 				 * @param {sessionName} string
-				 * @param {replaceTime} bool: replace '`' by ':'
+				 * @param {replaceTimeAndImperialDateSeparator} bool: replace '`' by ':' (and '.' by '/' for US/UK)
 				 * @param {removePostfix} number: 0 - don't remove, 1 - remove not saved private window(s) postfix, 2 - remove any postfix.
 				 * @param {addDisplayedPostfix} bool
 				 */
-				function convertSessionName(sessionName, replaceTime, tabCount, windowCount, removePostfix, addDisplayedPostfix){
+				function convertSessionName(sessionName, replaceTimeAndImperialDateSeparator, tabCount, windowCount, removePostfix, addDisplayedPostfix){
 					if(removePostfix > 0){
 						if(sessionName.substring(sessionName.length - PrivateWindowsOnlyFilenamePostfix.length) === PrivateWindowsOnlyFilenamePostfix){
 							if(removePostfix === 2){
@@ -713,7 +712,12 @@
 						}
 					}
 					
-					if(replaceTime){
+					if(replaceTimeAndImperialDateSeparator){
+						let dateTemplate = (new Date(2000, 10, 10)).toLocaleString();
+						if(dateTemplate.substring(2, 3) == '/'){
+							sessionName = sessionName.replace(/\./g, '/');
+						};
+						
 						sessionName = sessionName.replace(/`/g, ':');
 					}
 					
