@@ -714,8 +714,13 @@
 					
 					if(replaceTimeAndImperialDateSeparator){
 						let dateTemplate = (new Date(2000, 10, 10)).toLocaleString();
-						if(dateTemplate.substring(2, 3) == '/'){
-							sessionName = sessionName.replace(/\./g, '/');
+						
+						if(dateTemplate.substring(2, 3) === '/' && (sessionName.substring(1, 2) === '.')){
+							sessionName = sessionName.substring(0, 1) + '/' + sessionName.substring(2, 4) + '/' + sessionName.substring(5);
+						};
+						
+						if(dateTemplate.substring(2, 3) === '/' && (sessionName.substring(2, 3) === '.')){
+							sessionName = sessionName.substring(0, 2) + '/' + sessionName.substring(3, 5) + '/' + sessionName.substring(6);
 						};
 						
 						sessionName = sessionName.replace(/`/g, ':');
