@@ -920,7 +920,7 @@
 					SelectedSessions = getSelectedSessionNames();
 					
 					if(SelectedSessions.length === 1){
-						const sessionName = convertSessionName(SelectedSessions[0], true, 0, 0, 1, true);
+						const sessionName = convertSessionName(SelectedSessions[0], true, 0, 0, 2, true);
 						const delete_t = l10nLocalized.delete_prompt.replace('$T', sessionName);
 						confirmMessage(delete_t, "del");
 					} else {
