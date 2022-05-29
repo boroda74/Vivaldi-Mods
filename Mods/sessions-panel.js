@@ -11,6 +11,7 @@
  * pt-BR by @oinconquistado
  * pl-PL by @supra107
  * ru-RU by @boroda74
+ * fr-FR by pachacroute 
 */
 
 (function advancedPanels(){
@@ -432,6 +433,51 @@
 			private_windows_only_label: 'Private window(s) only',
 			tabs_label: 'Tabs: ',
 			windows_label: 'windows: ',
+		},
+		'fr-FR': {
+			language_name: "French (Français - France)",
+			language_btn: "Lang",
+			language_confirm: "✓ Changer",
+			language_cancel: "✕ Annuler",
+			language_selection_tooltip: "Choisir la langue du panneau de session",
+			title: "Sessions",
+			new_session: "Nouvelle Session",
+			session_name_placeholder: "Nom de la session",
+			all_windows: "Toutes les fenêtres",
+			only_selected: "Onglets sélectionnés",
+			add_session_btn: "Ajouter la session",
+			add_session_btn_desc: "Sauvegarder la session courante",
+			refresh_sessions_btn: "⇄",
+			refresh_sessions_btn_desc: "Actualiser la liste des sessions et effacer le nom de session",
+			saved_sessions: "Sessions sauvegardées",
+			sort_title: "Trier par…",
+			sort_date: "Tri par date",
+			sort_name: "Tri par nom",
+			sort_asc: "Tri par ordre croissant",
+			sort_desc: "Tri par ordre décroissant",
+			delete_button: "Supprimer la(les) session(s) sélectionnée(s)",
+			delete_prompt: "Souhaitez-vous vraiment supprimer la session $T ?",
+			delete_number_sessions:
+			"Souhaitez-vous vraiment supprimer les $N sessions sélectionnées ?",
+			delete_number_sessions_general: "",
+			number_sessions_1_form: "",
+			number_sessions_2_4_form: "",
+			number_sessions_5_20_form: "",
+			delete_confirm: "⚠ Oui, supprimer",
+			action_cancel: "Non, annuler",
+			open_number_sessions: "Souhaitez-vous vraiment ouvrir les $N sessions sélectionnées ?",
+			open_number_sessions_general: "",
+			open_confirm: "⚠ Oui, ouvrir",
+			overwrite_prompt: "Souhaitez-vous vraiment écraser la session $T ?",
+			overwrite_confirm: "⚠ Oui, écraser",
+			time_created_label: "Dernière modif. <time></time>",
+			today_label: "Aujourd'hui",
+			open_in_new_window_button: "Ouvrir la(les) session(s) sélectionnée(s) dans une nouvelle fenêtre",
+			open_in_current_window_button: "Ouvrir la(les) session(s) sélectionnée(s) dans la fenêtre active",
+			private_windows_not_saved_label: "Fenêtre(s) privées(s) non sauvegardée(s)",
+			private_windows_only_label: "Fenêtre(s) privées(s) seulement",
+			tabs_label: "Onglets : ",
+			windows_label: "Fenêtres : ",
 		},
 	};
 	
