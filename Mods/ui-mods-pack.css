@@ -1,17 +1,16 @@
-/* Add blue bar at the top of active tab header */
-.tab {
-	padding-top: 2px;
-	height: 35px !important;
+.button-toolbar button[title*="Перейти на домашнюю страницу"] svg path, .button-toolbar[title*="Перейти на домашнюю страницу"] > button svg path {
+	d: path('M7.385 0c-4.065,0 -7.385,3.32 -7.385,7.385 0,4.065 3.32,7.385 7.385,7.385 3.839,0 7.013,-2.956 7.349,-6.714l0.111 -1.238 -6.892 0 0 2.272 4.171 0c-0.71,1.97 -2.516,3.408 -4.74,3.408 -2.835,0 -5.112,-2.277 -5.112,-5.113 0,-2.835 2.277,-5.112 5.112,-5.112 1.354,0 2.574,0.524 3.488,1.376l1.553 -1.66c-1.323,-1.234 -3.098,-1.988 -5.042,-1.988l-0 0z') !important;
+	transform: translate(6px, 6px);
 }
 
-.tab.active {
-	border-top: 2px solid #0a84ff;
-	padding-top: 0px;
-	height: 35px !important;
-}
 
-#tabs-container.top {
-	padding-top: 0px;
+/*Hide the Bookmark and Notes Previews*/
+.addbookmark-cardwrapper .upper-half .preview/*,
+.notes-cardwrapper .upper-half .preview*/ {display: none;}
+
+/* Bookmarks Panel input width */
+.addbookmark-cardwrapper {
+	width: 100%;
 }
 
 
@@ -83,6 +82,7 @@
 	height: 80%;
 	width: 80%;
 }
+
 .vivaldi {
 	position: relative !important;
 	top: 3px !important;
@@ -143,3 +143,39 @@
 .discarded ~ .title {
 	opacity: .6;
 }
+
+
+/* Bookmarks menu mod */
+#browser.bookmark-bar-top > #main > .bookmark-bar{
+	width: 95px;
+	position: absolute;
+	right: 0;
+	height: 34px;
+	margin-right: 0px;
+	padding-right: 0px;
+	z-index: 10;
+}
+
+/* width of bookmarks bar */
+:root {
+	--bar-width: 80px;
+}
+
+@media (max-width: 800px) {
+	:root {
+		--bar-width: 22px;
+	}
+}
+
+/* bookmarks bar in address bar */
+#browser.bookmark-bar-top > #main > .mainbar {
+	padding-right: 95px;
+}
+
+}
+
+#browser.bookmark-bar-top > #main > .bookmark-bar .folder-icon + span {
+	margin-left: 0px;
+}
+
+/*#main > .inner {background-color: black;}*/
