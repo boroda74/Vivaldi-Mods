@@ -142,7 +142,8 @@
 	margin-right: 10px;
 	margin-bottom: 4px;
 	height: 100%;
-}
+	border: 1px solid #00000000;
+	background: var(----colorBorderDisabled);}
 
 #sessions_lonm .sessions-list li div {
 	flex-grow: 1;
@@ -179,9 +180,8 @@
 	padding-right: 8px;
 	
 	color: var(--colorFg);
-	background: var(--colorBg);
-	border: 1px solid var(--colorBg);
-	border-radius: var(--radiusHalf);
+
+	border: 1px solid #00000000;
 }
 
 #sessions_lonm li:hover {
