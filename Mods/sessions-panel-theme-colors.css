@@ -125,8 +125,8 @@
 #sessions_lonm .remarks {
 	margin-top: 0px;
 	margin-bottom: 4px;
-	margin-left: 10px;
-	margin-right: 10px;
+	margin-left: 0px;
+	margin-right: 0px;
 	
 	font-size: smaller;
 	font-weight: bold;
@@ -138,8 +138,8 @@
 
 #sessions_lonm .sessions-list {
 	margin-bottom: 10px;
-	margin-left: 10px;
-	margin-right: 10px;
+	margin-left: 4px;
+	margin-right: 4px;
 	margin-bottom: 4px;
 	height: 100%;
 	border: 1px solid #00000000;
@@ -186,19 +186,19 @@
 
 #sessions_lonm li:hover {
 	color: var(--colorHighlightFg);
-	background: var(--colorHighlightBg);
-	border: 1px solid var(--colorHighlightBg);
+	background: var(--colorBg);
+	border: 1px solid var(--colorBg);
 }
 
 #sessions_lonm li.selected {
 	color: var(--colorHighlightFg);
-	background: var(--colorHighlightBgDark);
+	background: var(--colorHighlightBg);
 	border: 1px solid var(--colorHighlightBgDark);
 }
 
 #sessions_lonm li.selected:hover {
-	background: var(--colorHighlightBg);
-	border: 1px solid var(--colorBorder);
+	background: var(--colorHighlightBgDark);
+	border: 1px solid var(--colorHighlightBgDark);
 }
 
 #sessions_lonm li.last-selected {
@@ -236,7 +236,7 @@
 	width: 20px;
 	height: 20px;
 	
-	border: 1px solid var(--colorHighlightBgUnfocused);
+	border: 1px solid var(--colorHighlightBgDark);
 }
 
 #sessions_lonm .delete svg {
@@ -249,7 +249,7 @@
 	width: 20px;
 	height: 20px;
 	
-	border: 1px solid var(--colorHighlightBgUnfocused);
+	border: 1px solid var(--colorHighlightBgDark);
 }
 
 #sessions_lonm .open-current svg {
@@ -262,7 +262,7 @@
 	width: 20px;
 	height: 20px;
 	
-	border: 1px solid var(--colorHighlightBgUnfocused);
+	border: 1px solid var(--colorHighlightBgDark);
 }
 
 #sessions_lonm .open-new svg {
@@ -309,7 +309,7 @@
 	background-color: var(--colorBgLight);
 	box-shadow: var(--shadowOverlay);
 	border-radius: var(--radiusHalf);
-	border: 1px solid var(--colorBorder);
+	border: 1px solid var(--colorHighlightBgDark);
 	width: 100%;
 }
 
