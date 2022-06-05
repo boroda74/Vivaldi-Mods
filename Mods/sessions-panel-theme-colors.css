@@ -137,13 +137,17 @@
 }
 
 #sessions_lonm .sessions-list {
-	margin-bottom: 10px;
+	margin-top: 0px;
 	margin-left: 4px;
 	margin-right: 4px;
 	margin-bottom: 4px;
 	height: 100%;
-	border: 1px solid #00000000;
-	background: var(----colorBorderDisabled);}
+	border: 1px solid var(colorHighlightBgDark);
+	background: var(----colorBorderDisabled);
+	border-top-style: hidden;
+	border-left-style: hidden;
+	border-right-style: hidden;
+}
 
 #sessions_lonm .sessions-list li div {
 	flex-grow: 1;
@@ -179,34 +183,37 @@
 	padding-left: 8px;
 	padding-right: 8px;
 	
+	margin-top: 0px;
+	margin-bottom: 0px;
+	
 	color: var(--colorFg);
-
+	
 	border: 1px solid #00000000;
 }
 
 #sessions_lonm li:hover {
 	color: var(--colorHighlightFg);
 	background: var(--colorBg);
-	border: 1px solid var(--colorBg);
+	border: 1px solid #00000000);
 }
 
 #sessions_lonm li.selected {
 	color: var(--colorHighlightFg);
 	background: var(--colorHighlightBg);
-	border: 1px solid var(--colorHighlightBgDark);
+	border: 1px solid #00000000;
 }
 
 #sessions_lonm li.selected:hover {
 	background: var(--colorHighlightBgDark);
-	border: 1px solid var(--colorHighlightBgDark);
+	border: 1px solid #00000000;
 }
 
 #sessions_lonm li.last-selected {
-	border: 1px dotted var(--colorBorder);
+	border: 1px dotted var(--colorHighlightBgDark);
 }
 
 #sessions_lonm li.last-selected:hover {
-	border: 1px solid var(--colorBorder);
+	border: 1px solid var(--colorHighlightBgDark);
 }
 
 #sessions_lonm li button {
