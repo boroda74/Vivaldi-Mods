@@ -97,7 +97,7 @@
 	/*
 	 * Enable Autosaving sessions
 	 */
-	function autoSaveSession(){
+	function autoSaveSession(openedTabUrls, savedTabUrls){
 		vivaldi.sessionsPrivate.getAll(allSessions => {
 			const keys = MOD_SETTINGS.reduce((prev, current) => {
 				prev[current.id] = current.default;
@@ -112,11 +112,11 @@
 				}
 				
 				const savePrivate = CURRENT_SETTINGS["LONM_SESSION_SAVE_PRIVATE_WINDOWS"];
-
+				
 				if(CurrentWindowIsPrivate && !savePrivate){ //Will skip the check of 'savePrivate' later
 					return;
 				}
-
+				
 				/* Create the new session */
 				chrome.windows.getAll({
 					populate: true,
@@ -196,6 +196,9 @@
 						}
 					}
 				});
+				
+				
+				chrome.storage.local.set({["SAVED_TAB_URLS"]: openedTabUrls}, () => {});
 			});
 		});
 	}
@@ -207,7 +210,7 @@
 	function triggerAutosaveHelper(){
 		let lastWindowSettingName;
 		let lastSaveTimeSettingName;
-		if(!CurrentWindowIsPrivate){
+		if (!CurrentWindowIsPrivate){
 			lastWindowSettingName = "LONM_SESSION_AUTOSAVE_LAST_WINDOW";
 			lastSaveTimeSettingName = "LONM_SESSION_AUTOSAVE_LAST_DATETIME";
 		} else {
@@ -215,59 +218,92 @@
 			lastSaveTimeSettingName = "LONM_SESSION_AUTOSAVE_LAST_PRIVATE_DATETIME";
 		}
 		
-		chrome.storage.local.get([lastWindowSettingName, lastSaveTimeSettingName], lastSettings => {
-			let lastSavedWindow = lastSettings[lastWindowSettingName]; //Last window id when autosaving window has been changed
-			let lastSavedSaveTime = lastSettings[lastSaveTimeSettingName]; //Last datetime when autosaving window has been changed
-			const now = Date.now();
-			
-			if(OldAutosaveInterval !== AutosaveInterval && AutosaveTimeout <= 0){ //If this function is called via setTimeout() then lets schedule periodic calls via setInterval() now
-				initSwitching();
-			}
-			
-			if(lastSavedWindow == null){
-				lastSavedWindow = -1;
-			};
-			
-			
-			if(window.vivaldiWindowId === lastSavedWindow){
-				/* We know this window is correct, skip the checks */
-				LastSaveTime = now;
-
-				chrome.storage.local.set({ 
-					[lastSaveTimeSettingName]: LastSaveTime 
-				}, () => {
-					autoSaveSession();
-				});
-				return;
-			}
-			
-			
-			chrome.windows.getAll(openedWindows => {
-				const foundLastOpen = openedWindows.find(windowItem => windowItem.id === lastSavedWindow);
+		chrome.tabs.query({}, openedTabs => {
+			chrome.storage.local.get(["SAVED_TAB_URLS"], savedTabUrlsArray => {
+				let isThereDifference = false;
+				let openedTabUrls = new Array();
+				let savedTabUrls = savedTabUrlsArray["SAVED_TAB_URLS"];
 				
-				if(foundLastOpen){
-					/* Most recent window still active, use that one instead (see code above) */
-				} else {
-					/* Most recent window was closed, revert to this one */
-					if(lastSavedSaveTime == null){
-						LastSaveTime = now;
-					} else if((now - lastSavedSaveTime) > AutosaveInterval){
-						LastSaveTime = now;
+				
+				if (savedTabUrls != null) {
+					if (savedTabUrls.length === openedTabs.length) {
+						for (let i = 0; i < openedTabs.length; i++) {
+							if (openedTabs[i].url != savedTabUrls[i]) {
+								isThereDifference = true;
+								break;
+							}
+						}
 					} else {
-						LastSaveTime = lastSavedSaveTime;
+						isThereDifference = true;
+					}
+				} else {
+					isThereDifference = true;
+				}
+				
+				if (isThereDifference) {
+					for (let i = 0; i < openedTabs.length; i++) {
+						openedTabUrls.push(openedTabs[i].url);
+					}
+				} else {
+					return;
+				}
+				
+				
+				chrome.storage.local.get([lastWindowSettingName, lastSaveTimeSettingName], lastSettings => {
+					let lastSavedWindow = lastSettings[lastWindowSettingName]; //Last window id when autosaving window has been changed
+					let lastSavedSaveTime = lastSettings[lastSaveTimeSettingName]; //Last datetime when autosaving window has been changed
+					const now = Date.now();
+					
+					if(OldAutosaveInterval !== AutosaveInterval && AutosaveTimeout <= 0){ //If this function is called via setTimeout() then lets schedule periodic calls via setInterval() now
+						initSwitching();
 					}
 					
-					chrome.storage.local.set({ 
-						[lastWindowSettingName]: window.vivaldiWindowId, [lastSaveTimeSettingName]: LastSaveTime 
-					}, () => {
-						if(LastSaveTime === now){
-							autoSaveSession();
-						} else { //Lets reschedule autosavings starting from new last save time 
-							AutosaveTimeout = getTimeout();
-							initSwitching();
+					if(lastSavedWindow == null){
+						lastSavedWindow = -1;
+					};
+					
+					
+					if(window.vivaldiWindowId === lastSavedWindow){
+						/* We know this window is correct, skip the checks */
+						LastSaveTime = now;
+						
+						chrome.storage.local.set({ 
+							[lastSaveTimeSettingName]: LastSaveTime 
+						}, () => {
+							autoSaveSession(openedTabUrls, savedTabUrls);
+						});
+						return;
+					}
+					
+					
+					chrome.windows.getAll(openedWindows => {
+						const foundLastOpen = openedWindows.find(windowItem => windowItem.id === lastSavedWindow);
+						
+						if(foundLastOpen){
+							/* Most recent window still active, use that one instead (see code above) */
+						} else {
+							/* Most recent window was closed, revert to this one */
+							if(lastSavedSaveTime == null){
+								LastSaveTime = now;
+							} else if((now - lastSavedSaveTime) > AutosaveInterval){
+								LastSaveTime = now;
+							} else {
+								LastSaveTime = lastSavedSaveTime;
+							}
+							
+							chrome.storage.local.set({ 
+								[lastWindowSettingName]: window.vivaldiWindowId, [lastSaveTimeSettingName]: LastSaveTime 
+							}, () => {
+								if(LastSaveTime === now){
+									autoSaveSession(openedTabUrls, savedTabUrls);
+								} else { //Lets reschedule autosavings starting from new last save time 
+									AutosaveTimeout = getTimeout();
+									initSwitching();
+								}
+							});
 						}
 					});
-				}
+				});
 			});
 		});
 	}
