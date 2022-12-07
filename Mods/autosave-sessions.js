@@ -414,8 +414,8 @@
 	 */
 	const SETTINGSPAGE = "chrome-extension://mpognobbkildjkofajifpdfhcoklimli/components/settings/settings.html?path=general";
 	
-	function modSettingsPageListener(tabId, changeInfo, newTab){
-		if(newTab.url === SETTINGSPAGE || newTab.pendingUrl === SETTINGSPAGE){
+	function modSettingsPageListener(tab){
+		if(tab.url === SETTINGSPAGE || tab.pendingUrl === SETTINGSPAGE){
 			setTimeout(modSettingsPage, 500);
 		}
 	}
@@ -668,7 +668,7 @@
 				
 				initModUILocalization();
 				
-				chrome.tabs.onUpdated.addListener(modSettingsPageListener);
+				chrome.tabs.onCreated.addListener(modSettingsPageListener);
 			});
 		} else {
 			setTimeout(init, 500);
